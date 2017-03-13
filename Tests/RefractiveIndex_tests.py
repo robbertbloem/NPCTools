@@ -219,7 +219,62 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
 
 
+class Test_interpolate_data(unittest.TestCase):
+    """
+    Some basic checks of the interpolation routine. It checks if it works, but doesn't check the data. 
+    """
 
+
+    def setUp(self):
+        self.verbose = 0
+
+    def test_default(self):
+        
+        data = numpy.array([[0.0, 2.0], [1.0, 3.0]])        
+        db_record = {"data": data}
+        wl_um = numpy.array([0, 0.5, 1.0])
+        ri = RI.interpolate_data(db_record, wl_um, interpolate_kind = "default", verbose = self.verbose)
+        ri_check = numpy.array([2.0, 2.5, 3.0])
+        self.assertTrue(numpy.all(ri == ri_check))
+        
+    def test_linear_1(self):
+        
+        data = numpy.array([[0.0, 2.0], [1.0, 3.0]])        
+        db_record = {"data": data}
+        wl_um = numpy.array([0, 0.5, 1.0])
+        ri = RI.interpolate_data(db_record, wl_um, interpolate_kind = "linear", verbose = self.verbose)
+        ri_check = numpy.array([2.0, 2.5, 3.0])
+        self.assertTrue(numpy.all(ri == ri_check))
+        
+    def test_linear_2(self):
+
+        n = 101
+        data = numpy.zeros((n, 2))   
+        data[:,0] = numpy.arange(n) / 15
+        data[:,1] = numpy.sin(data[:,0])        
+        cut_data = data[::5,:]
+        db_record = {"data": cut_data}   
+        ri = RI.interpolate_data(db_record, data[:,0], interpolate_kind = "linear", verbose = self.verbose)
+        
+    def test_cubic_1(self):
+
+        n = 101
+        data = numpy.zeros((n, 2))   
+        data[:,0] = numpy.arange(n) / 15
+        data[:,1] = numpy.sin(data[:,0])        
+        cut_data = data[::5,:]
+        db_record = {"data": cut_data}   
+        ri = RI.interpolate_data(db_record, data[:,0], interpolate_kind = "cubic", verbose = self.verbose)
+
+    def test_quadratic_1(self):
+
+        n = 101
+        data = numpy.zeros((n, 2))   
+        data[:,0] = numpy.arange(n) / 15
+        data[:,1] = numpy.sin(data[:,0])        
+        cut_data = data[::5,:]
+        db_record = {"data": cut_data}   
+        ri = RI.interpolate_data(db_record, data[:,0], interpolate_kind = "quadratic", verbose = self.verbose)
 
 
 
@@ -229,6 +284,11 @@ if __name__ == '__main__':
     
     suite = unittest.TestLoader().loadTestsFromTestCase( Test_ri_gvd_with_formulas)
     unittest.TextTestRunner(verbosity=1).run(suite) 
+ 
+    suite = unittest.TestLoader().loadTestsFromTestCase(Test_interpolate_data)
+    unittest.TextTestRunner(verbosity=1).run(suite) 
+ 
+ 
  
 
 

@@ -13,11 +13,13 @@ import NPCTools.Resources.Constants as CONST
 import NPCTools.Resources.CommonFunctions as CF
 import NPCTools.Debug as DEBUG
 
-def interpolate_data(db_record, wl_um, interpolate_kind = "default", verbose = 0):
+def interpolate_data(original_x, original_y, new_x, interpolate_kind = "default", verbose = 0):
     """
+    Interpolate data 
+    
     db_record contains the original data
     wl_um are the wavelengths we want to know
-    kind = linear, quadratic, cubic
+    kind = Specifies the kind of interpolation as a string ('linear', 'nearest', 'zero', 'slinear', 'quadratic, 'cubic', where 'slinear', 'quadratic' and 'cubic' refer to a spline interpolation of first, second or third order) or as an integer specifying the order of the spline interpolator to use. Default is 'linear'
     """    
     
     if interpolate_kind == "default":
@@ -25,10 +27,10 @@ def interpolate_data(db_record, wl_um, interpolate_kind = "default", verbose = 0
     
     DEBUG.verbose("  Interpolating data using %s" % (interpolate_kind), verbose_level = 1)
     
-    f = interp1d(db_record["data"][:,0], db_record["data"][:,1], kind = interpolate_kind)
-    ri = f(wl_um)    
+    f = interp1d(original_x, original_y, kind = interpolate_kind)
+    new_y = f(new_x)    
 
-    return ri
+    return new_y
 
 
 
@@ -142,11 +144,11 @@ def ri_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose =
 
     elif db_record["type"] == "tabulated n":
         DEBUG.verbose("  Tabulated data (type n)", verbose_level = 1)
-        ri = interpolate_data(db_record, wl_um)
+        ri = interpolate_data(db_record["data"][:,0], db_record["data"][:,1], wl_um)
         
     elif db_record["type"] == "tabulated nk":
         DEBUG.verbose("  Tabulated data (type nk)", verbose_level = 1)
-        ri = interpolate_data(db_record, wl_um)
+        ri = interpolate_data(db_record["data"][:,0], db_record["data"][:,1], wl_um)
         
     else:
         raise ValueError("The type of data in the database record is unknown (usually formula 1-9 or tabulated data). Type here is %s." % db_record["type"]) 
@@ -553,9 +555,9 @@ if __name__ == "__main__":
 #     plot_ri(paf, um_range = [0.4, 17])
 # 
 # 
-#     # tabulated nk
-#     paf = path + "database/main/Ag/Babar.yml"
-#     plot_ri(paf, um_range = [0.21, 12])
+    # tabulated nk
+    paf = path + "database/main/Ag/Babar.yml"
+    plot_ri(paf, um_range = [0.21, 12])
 # 
 # 
     # formula 3
@@ -564,22 +566,22 @@ if __name__ == "__main__":
 #     gvd = plot_gvd(paf, um_range = [0.5, 1.5])
 #     print(ri[0])
 #     print(gvd[0])
-
-    # formula 4
-    # https://refractiveindex.info/?shelf=main&book=BaB2O4&page=Eimerl-o
-    paf = path + "database/main/BaB2O4/Eimerl-o.yml"
-    ri = plot_ri(paf, um_range = [0.25, 1.0])
-    gvd = plot_gvd(paf, um_range = [0.25, 1.0])
-    print(ri[0])
-    print(gvd[0])
-
-    # formula 4
-    # https://refractiveindex.info/?shelf=main&book=BiB3O6&page=Umemura-α
-    paf = path + "database/main/BiB3O6/Umemura-alpha.yml"
-    ri = plot_ri(paf, um_range = [0.5, 1.0])
-    gvd = plot_gvd(paf, um_range = [0.5, 1.0])
-    print(ri[0])
-    print(gvd[0])
+# 
+#     # formula 4
+#     # https://refractiveindex.info/?shelf=main&book=BaB2O4&page=Eimerl-o
+#     paf = path + "database/main/BaB2O4/Eimerl-o.yml"
+#     ri = plot_ri(paf, um_range = [0.25, 1.0])
+#     gvd = plot_gvd(paf, um_range = [0.25, 1.0])
+#     print(ri[0])
+#     print(gvd[0])
+# 
+#     # formula 4
+#     # https://refractiveindex.info/?shelf=main&book=BiB3O6&page=Umemura-α
+#     paf = path + "database/main/BiB3O6/Umemura-alpha.yml"
+#     ri = plot_ri(paf, um_range = [0.5, 1.0])
+#     gvd = plot_gvd(paf, um_range = [0.5, 1.0])
+#     print(ri[0])
+#     print(gvd[0])
 
  
 #     # formula 5
@@ -593,7 +595,19 @@ if __name__ == "__main__":
 #     paf = path + "database/main/H2/Peck.yml"
 #     plot_ri(paf, um_range = [0.17, 1.65])
 
-
+#     n = 101
+#     data = numpy.zeros((n, 2))
+#     
+#     data[:,0] = numpy.arange(n) / 15
+#     data[:,1] = numpy.sin(data[:,0])
+#     plt.plot(data[:,0], data[:,1])
+# 
+#     cut_data = data[::5,:]
+#     db_record = {"data": cut_data}
+# 
+#     
+#     ri = interpolate_data(db_record, data[:,0], interpolate_kind = "cubic")
+#     plt.plot(data[:,0], ri)
 
 
 
