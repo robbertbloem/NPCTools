@@ -519,10 +519,12 @@ def plot_gvd(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, ax = False, 
 if __name__ == "__main__": 
     plt.close("all")
     
+    path = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndexDB/"
+    
 #     
 #     # formula 1
 #     # https://refractiveindex.info/?shelf=main&book=ZnSe&page=Connolly
-#     paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/ZnSe/Connolly.yml"
+#     paf = path + "database/main/ZnSe/Connolly.yml"
 #     ri = plot_ri(paf, um_range = [4, 18])
 #     gvd = plot_gvd(paf, um_range = [4, 8])
 #     print(ri[0])
@@ -531,7 +533,7 @@ if __name__ == "__main__":
 #     
 #     # formula 2
 #     # https://refractiveindex.info/?shelf=main&book=CaF2&page=Daimon-20
-#     paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/CaF2/Daimon-20.yml"
+#     paf = path + "database/main/CaF2/Daimon-20.yml"
 #     wl_um = numpy.array([0.3, 0.4, 0.5, 0.6])
 # #     plot_ri(paf, wl_um = wl_um)
 #     ri = plot_ri(paf)
@@ -539,25 +541,25 @@ if __name__ == "__main__":
 #     print(gvd[0])
 #     
 #     
-# #     paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/CaF2/Daimon-20.yml"
+# #     paf = path + "database/main/CaF2/Daimon-20.yml"
 # #     wl_um = numpy.array([0.3, 20])
 # #     plot_ri(paf, wl_um = wl_um)
 # # #     plot_ri(paf)
 #     
 #     
-#     paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/Al2O3/Boidin.yml"
+#     paf = path + "database/main/Al2O3/Boidin.yml"
 # #     wl_um = numpy.array([0.3, 0.4, 0.5, 0.6])
 # #     plot_ri(paf, wl_um = wl_um)
 #     plot_ri(paf, um_range = [0.4, 17])
 # 
 # 
 #     # tabulated nk
-#     paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/Ag/Babar.yml"
+#     paf = path + "database/main/Ag/Babar.yml"
 #     plot_ri(paf, um_range = [0.21, 12])
 # 
 # 
     # formula 3
-#     paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/organic/C6H6 - benzene/Moutzouris.yml"
+#     paf = path + "database/organic/C6H6 - benzene/Moutzouris.yml"
 #     ri = plot_ri(paf, um_range = [0.5, 1.5])
 #     gvd = plot_gvd(paf, um_range = [0.5, 1.5])
 #     print(ri[0])
@@ -565,7 +567,7 @@ if __name__ == "__main__":
 
     # formula 4
     # https://refractiveindex.info/?shelf=main&book=BaB2O4&page=Eimerl-o
-    paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/BaB2O4/Eimerl-o.yml"
+    paf = path + "database/main/BaB2O4/Eimerl-o.yml"
     ri = plot_ri(paf, um_range = [0.25, 1.0])
     gvd = plot_gvd(paf, um_range = [0.25, 1.0])
     print(ri[0])
@@ -573,7 +575,7 @@ if __name__ == "__main__":
 
     # formula 4
     # https://refractiveindex.info/?shelf=main&book=BiB3O6&page=Umemura-α
-    paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/BiB3O6/Umemura-alpha.yml"
+    paf = path + "database/main/BiB3O6/Umemura-alpha.yml"
     ri = plot_ri(paf, um_range = [0.5, 1.0])
     gvd = plot_gvd(paf, um_range = [0.5, 1.0])
     print(ri[0])
@@ -582,13 +584,13 @@ if __name__ == "__main__":
  
 #     # formula 5
 #     # https://refractiveindex.info/?shelf=organic&book=octane&page=Kerl-293K
-#     paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/organic/C8H18 - octane/Kerl-293K.yml"
+#     paf = path + "database/organic/C8H18 - octane/Kerl-293K.yml"
 #     plot_ri(paf, um_range = [0.33, 0.64])
 
 # 
 #     # formula 6
 #     # https://refractiveindex.info/?shelf=main&book=H2&page=Peck
-#     paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/H2/Peck.yml"
+#     paf = path + "database/main/H2/Peck.yml"
 #     plot_ri(paf, um_range = [0.17, 1.65])
 
 

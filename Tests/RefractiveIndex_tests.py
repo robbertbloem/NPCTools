@@ -34,9 +34,11 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         self.rtol_ri = 0.0001
         self.rtol_gvd = 0.001
 
+        path = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndexDB/"
+
         # formula 1
         # https://refractiveindex.info/?shelf=main&book=ZnSe&page=Connolly
-        self.f1_paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/ZnSe/Connolly.yml"
+        self.f1_paf = path + "database/main/ZnSe/Connolly.yml"
         self.f1 = {
             "type": "formula 1", 
             "range": [0.54, 18.2], 
@@ -45,7 +47,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
         # formula 2
         # https://refractiveindex.info/?shelf=main&book=CaF2&page=Daimon-20
-        self.f2_paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/CaF2/Daimon-20.yml"
+        self.f2_paf = path + "database/main/CaF2/Daimon-20.yml"
         self.f2 = {
             "type": "formula 2", 
             "range": [0.138, 2.326], 
@@ -54,7 +56,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
         # formula 3
         # https://refractiveindex.info/?shelf=organic&book=benzene&page=Moutzouris
-        self.f3_paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/organic/C6H6 - benzene/Moutzouris.yml"    
+        self.f3_paf = path + "database/organic/C6H6 - benzene/Moutzouris.yml"    
         self.f3 = {
             "type": "formula 3", 
             "range": [0.450, 1.551], 
@@ -63,7 +65,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
         # formula 4
         # https://refractiveindex.info/?shelf=main&book=BaB2O4&page=Eimerl-o
-        self.f4_paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/BaB2O4/Eimerl-o.yml"            
+        self.f4_paf = path + "database/main/BaB2O4/Eimerl-o.yml"            
         self.f4 = {
             "type": "formula 4", 
             "range": [0.22, 1.06], 
@@ -72,7 +74,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
         # formula 5
         # https://refractiveindex.info/?shelf=organic&book=octane&page=Kerl-293K
-        self.f5_paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/organic/C8H18 - octane/Kerl-293K.yml"            
+        self.f5_paf = path + "database/organic/C8H18 - octane/Kerl-293K.yml"            
         self.f5 = {
             "type": "formula 5", 
             "range": [0.326, 0.644], 
@@ -81,7 +83,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
         # formula 6
         # https://refractiveindex.info/?shelf=main&book=H2&page=Peck
-        self.f6_paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/H2/Peck.yml"           
+        self.f6_paf = path + "database/main/H2/Peck.yml"           
         self.f6 = {
             "type": "formula 6", 
             "range": [0.1680, 1.6945], 
@@ -90,10 +92,10 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         
 
         # tabulated n
-        self.tab_n_paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/Al2O3/Boidin.yml"
+        self.tab_n_paf = path + "database/main/Al2O3/Boidin.yml"
 
         # tabulated nk
-        self.tab_nk_paf = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndex/database/main/Ag/Babar.yml"
+        self.tab_nk_paf = path + "database/main/Ag/Babar.yml"
     
     def test_formula_1_ri(self):
         wl_um = numpy.array([0.6, 4.0, 5.0, 6.0, 10.0, 18.0])
@@ -113,7 +115,6 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
         wl_um, gvd = RI.get_gvd(self.f1_paf, wl_um = wl_um, verbose = self.verbose)
         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
-
        
 
     def test_formula_2_ri(self):
