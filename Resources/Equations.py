@@ -83,24 +83,6 @@ def rb_two_lorentzians(A, t,):
 
 
 
-# INDEX OF REFRACTION
-def Sellmeier(A, t):
-    """
-    Calculates the index of refraction using the Sellmeier equation.
-
-    CHANGELOG:
-    20110909/RB: started
-    20150810/RB: now returns n, not n**2
-    
-    INPUT:
-    A (array): the Sellmeier Coefficients
-    t (array): wavelengths to calculate the index of refraction.
-    
-    OUPUT:
-    n (array): index of refraction for the given t's
-    """
-
-    return numpy.sqrt(A[6] + (A[0] * t**2) / (t**2 - A[1]) + (A[2] * t**2) / (t**2 - A[3]) + (A[4] * t**2) / (t**2 - A[5]))
 
 
 # RESPONSE FUNCTIONS
