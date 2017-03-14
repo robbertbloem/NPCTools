@@ -144,6 +144,9 @@ def gvd_formula_1(x, s):
     """
     Formula 1 and 2 are the same, except that some coefficients are squared. 
     """
+    if len(s) > 9:
+        raise NotImplementedError("The GVD can only be calculated for the first 9 terms.")
+    
     if len(s) < 9:
         _s = numpy.zeros(9)
         _s[:len(s)] = s
