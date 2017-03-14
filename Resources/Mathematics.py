@@ -16,10 +16,12 @@ try:
 except ImportError:
     scipy_import = False
 
+from scipy.interpolate import interp1d
+
 import itertools
 
-import Crocodile.Resources.Constants as CONST
-import PythonTools.Debug as DEBUG
+import NPCTools.Resources.Constants as CONST
+import NPCTools.Debug as DEBUG
 
 
 def square_formula(a, b, c):
@@ -191,4 +193,24 @@ def derivative(x, y):
         y_temp[i-1] = dy / dx
 
     return x_temp, y_temp    
+    
+# INTERPOLATION  
+
+def interpolate_data(original_x, original_y, new_x, interpolate_kind = "default", verbose = 0):
+    """
+    Interpolate data 
+    
+    kind = Specifies the kind of interpolation as a string ('linear', 'nearest', 'zero', 'slinear', 'quadratic, 'cubic', where 'slinear', 'quadratic' and 'cubic' refer to a spline interpolation of first, second or third order) or as an integer specifying the order of the spline interpolator to use. Default is 'linear'
+    """    
+    
+    if interpolate_kind == "default":
+        interpolate_kind = "linear"
+    
+    DEBUG.verbose("  Interpolating data using %s" % (interpolate_kind), verbose_level = 1)
+    
+    f = interp1d(original_x, original_y, kind = interpolate_kind)
+    new_y = f(new_x)    
+
+    return new_y
+
 

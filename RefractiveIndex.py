@@ -6,7 +6,7 @@ import numpy
 import matplotlib 
 import matplotlib.pyplot as plt
 
-from scipy.interpolate import interp1d
+
 
 import NPCTools.Resources.RI_read_yaml as RIRY
 import NPCTools.Resources.Constants as CONST
@@ -15,25 +15,6 @@ import NPCTools.Resources.CommonFunctions as CF
 import NPCTools.Debug as DEBUG
 
 
-
-def interpolate_data(original_x, original_y, new_x, interpolate_kind = "default", verbose = 0):
-    """
-    Interpolate data 
-    
-    db_record contains the original data
-    wl_um are the wavelengths we want to know
-    kind = Specifies the kind of interpolation as a string ('linear', 'nearest', 'zero', 'slinear', 'quadratic, 'cubic', where 'slinear', 'quadratic' and 'cubic' refer to a spline interpolation of first, second or third order) or as an integer specifying the order of the spline interpolator to use. Default is 'linear'
-    """    
-    
-    if interpolate_kind == "default":
-        interpolate_kind = "linear"
-    
-    DEBUG.verbose("  Interpolating data using %s" % (interpolate_kind), verbose_level = 1)
-    
-    f = interp1d(original_x, original_y, kind = interpolate_kind)
-    new_y = f(new_x)    
-
-    return new_y
 
 
 
