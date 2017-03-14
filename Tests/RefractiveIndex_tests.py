@@ -33,6 +33,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
         self.rtol_ri = 0.0001
         self.rtol_gvd = 0.001
+        self.atol_gvd = 0.002
 
         path = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndexDB/"
 
@@ -89,7 +90,16 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
             "range": [0.1680, 1.6945], 
             "coefficients": [0, 0.0148956, 180.7, 0.0049037, 92],
         }
-        
+
+        # formula 6b
+        # https://refractiveindex.info/?shelf=main&book=Ar&page=Bideau-Mehu
+        self.f6b_paf = path + "database/main/Ar/Bideau-Mehu.yml"          
+        self.f6b = {
+            "type": "formula 6", 
+            "range": [0.1404, 0.5677], 
+            "coefficients": [0, 2.50141e-3, 91.012, 5.00283e-4, 87.892, 5.22343e-2, 214.02],
+        }
+
 
         # tabulated n
         self.tab_n_paf = path + "database/main/Al2O3/Boidin.yml"
@@ -111,10 +121,10 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         wl_um = numpy.array([0.6, 4.0, 5.0, 6.0, 10.0, 18.0])
         gvd = RI.gvd_for_wavelengths(self.f1, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([2271.1, 75.299, -17.134, -136.21, -1221.0, -14134])
-        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
 
         wl_um, gvd = RI.get_gvd(self.f1_paf, wl_um = wl_um, verbose = self.verbose)
-        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
        
 
     def test_formula_2_ri(self):
@@ -131,10 +141,10 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         wl_um = numpy.array([0.15, 0.4, 0.6, 0.8, 1.5, 2.3])
         gvd = RI.gvd_for_wavelengths(self.f2, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([846.01, 67.513, 40.230, 27.796, 1.8579, -39.704])
-        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
         
         wl_um, gvd = RI.get_gvd(self.f2_paf, wl_um = wl_um, verbose = self.verbose)
-        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
 
 
     def test_formula_3_ri(self):
@@ -151,10 +161,10 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         wl_um = numpy.array([0.5, 1.0, 1.5])
         gvd = RI.gvd_for_wavelengths(self.f3, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([253.85, 81.590, 56.390])
-        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
         
         wl_um, gvd = RI.get_gvd(self.f3_paf, wl_um = wl_um, verbose = self.verbose)
-        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
         
 
     def test_formula_4_ri(self):
@@ -171,10 +181,10 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         wl_um = numpy.array([0.25, 0.6, 1.0])
         gvd = RI.gvd_for_wavelengths(self.f4, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([637.15, 111.14, 45.633])
-        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
         
         wl_um, gvd = RI.get_gvd(self.f4_paf, wl_um = wl_um, verbose = self.verbose)
-        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
 
 
     def test_formula_5_ri(self):
@@ -187,15 +197,14 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         self.assertTrue(numpy.allclose(ri, ri_check, rtol = self.rtol_ri))
 
 
-    # gvd_check is correct, but this is not implemented yet 
-#     def test_formula_5_gvd(self):
-#         wl_um = numpy.array([0.35, 0.5, 0.63])
-#         gvd = RI.gvd_for_wavelengths(self.f5, wl_um, verbose = self.verbose) 
-#         gvd_check = numpy.array([129.69, 86.012, 64.982])
-#         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
-# 
-#         wl_um, gvd = RI.get_gvd(self.f5_paf, wl_um = wl_um, verbose = self.verbose)
-#         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
+    def test_formula_5_gvd(self):
+        wl_um = numpy.array([0.35, 0.5, 0.63])
+        gvd = RI.gvd_for_wavelengths(self.f5, wl_um, verbose = self.verbose) 
+        gvd_check = numpy.array([129.69, 86.012, 64.982])
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
+
+        wl_um, gvd = RI.get_gvd(self.f5_paf, wl_um = wl_um, verbose = self.verbose)
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
 
 
     def test_formula_6_ri(self):
@@ -207,15 +216,41 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         wl_um, ri = RI.get_ri(self.f6_paf, wl_um = wl_um, verbose = self.verbose)
         self.assertTrue(numpy.allclose(ri, ri_check, rtol = self.rtol_ri))
 
-    # gvd_check is correct, but this is not implemented yet 
-#     def test_formula_6_gvd(self):
-#         wl_um = numpy.array([0.17, 0.7, 1.2, 1.65])
-#         gvd = RI.gvd_for_wavelengths(self.f6, wl_um, verbose = self.verbose) 
-#         gvd_check = numpy.array([0.22527, 0.016515, 0.010617, 0.0081099])
-#         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
-# 
-#         wl_um, gvd = RI.get_gvd(self.f6_paf, wl_um = wl_um, verbose = self.verbose)
-#         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd))
+        # there is an error with the GVD for formula 6
+    def test_formula_6_gvd(self):
+#         print("GVD for formula 6 is not tested.")
+    
+        wl_um = numpy.array([0.17, 0.7, 1.2, 1.65])
+        gvd = RI.gvd_for_wavelengths(self.f6, wl_um, verbose = self.verbose) 
+        gvd_check = numpy.array([0.22527, 0.016515, 0.010617, 0.0081099])
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
+        print(gvd)
+        print(gvd_check)
+        wl_um, gvd = RI.get_gvd(self.f6_paf, wl_um = wl_um, verbose = self.verbose)
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
+
+
+    def test_formula_6b_ri(self):
+        wl_um = numpy.array([0.15, 0.3, 0.4, 0.55])
+        ri = RI.ri_for_wavelengths(self.f6b, wl_um, verbose = self.verbose) 
+        ri_check = numpy.array([1.0003733, 1.0002952, 1.0002870, 1.0002823])
+        self.assertTrue(numpy.allclose(ri, ri_check, rtol = self.rtol_ri))
+        
+        wl_um, ri = RI.get_ri(self.f6b_paf, wl_um = wl_um, verbose = self.verbose)
+        self.assertTrue(numpy.allclose(ri, ri_check, rtol = self.rtol_ri))
+
+        # there is an error with the GVD for formula 6
+    def test_formula_6b_gvd(self):    
+        wl_um = numpy.array([0.15, 0.3, 0.4, 0.55])
+        gvd = RI.gvd_for_wavelengths(self.f6b, wl_um, verbose = self.verbose) 
+        gvd_check = numpy.array([0.40387, 0.068418, 0.046791, 0.030277])
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
+        print(gvd)
+        print(gvd_check)
+        wl_um, gvd = RI.get_gvd(self.f6b_paf, wl_um = wl_um, verbose = self.verbose)
+        self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
+
+
 
 
 
@@ -229,20 +264,18 @@ class Test_interpolate_data(unittest.TestCase):
         self.verbose = 0
 
     def test_default(self):
-        
-        data = numpy.array([[0.0, 2.0], [1.0, 3.0]])        
-        db_record = {"data": data}
-        wl_um = numpy.array([0, 0.5, 1.0])
-        ri = RI.interpolate_data(db_record, wl_um, interpolate_kind = "default", verbose = self.verbose)
+        original_x = [0,1]
+        original_y = [2,3]
+        new_x = numpy.array([0, 0.5, 1.0])
+        ri = RI.interpolate_data(original_x, original_y, new_x, interpolate_kind = "default", verbose = self.verbose)
         ri_check = numpy.array([2.0, 2.5, 3.0])
         self.assertTrue(numpy.all(ri == ri_check))
         
-    def test_linear_1(self):
-        
-        data = numpy.array([[0.0, 2.0], [1.0, 3.0]])        
-        db_record = {"data": data}
-        wl_um = numpy.array([0, 0.5, 1.0])
-        ri = RI.interpolate_data(db_record, wl_um, interpolate_kind = "linear", verbose = self.verbose)
+    def test_linear_1(self):     
+        original_x = [0,1]
+        original_y = [2,3]
+        new_x = numpy.array([0, 0.5, 1.0])
+        ri = RI.interpolate_data(original_x, original_y, new_x, interpolate_kind = "default", verbose = self.verbose)
         ri_check = numpy.array([2.0, 2.5, 3.0])
         self.assertTrue(numpy.all(ri == ri_check))
         
@@ -250,34 +283,33 @@ class Test_interpolate_data(unittest.TestCase):
 
         n = 101
         data = numpy.zeros((n, 2))   
-        data[:,0] = numpy.arange(n) / 15
-        data[:,1] = numpy.sin(data[:,0])        
-        cut_data = data[::5,:]
-        db_record = {"data": cut_data}   
-        ri = RI.interpolate_data(db_record, data[:,0], interpolate_kind = "linear", verbose = self.verbose)
-        
+        original_x = numpy.arange(n) / 15
+        original_y = numpy.sin(original_x)  
+        cut_x = original_x[::5]
+        cut_y = original_y[::5]        
+        ri = RI.interpolate_data(cut_x, cut_y, original_x, interpolate_kind = "linear", verbose = self.verbose)
+
+
     def test_cubic_1(self):
 
         n = 101
         data = numpy.zeros((n, 2))   
-        data[:,0] = numpy.arange(n) / 15
-        data[:,1] = numpy.sin(data[:,0])        
-        cut_data = data[::5,:]
-        db_record = {"data": cut_data}   
-        ri = RI.interpolate_data(db_record, data[:,0], interpolate_kind = "cubic", verbose = self.verbose)
-
+        original_x = numpy.arange(n) / 15
+        original_y = numpy.sin(original_x)  
+        cut_x = original_x[::5]
+        cut_y = original_y[::5]        
+        ri = RI.interpolate_data(cut_x, cut_y, original_x, interpolate_kind = "cubic", verbose = self.verbose)
+        
     def test_quadratic_1(self):
 
         n = 101
         data = numpy.zeros((n, 2))   
-        data[:,0] = numpy.arange(n) / 15
-        data[:,1] = numpy.sin(data[:,0])        
-        cut_data = data[::5,:]
-        db_record = {"data": cut_data}   
-        ri = RI.interpolate_data(db_record, data[:,0], interpolate_kind = "quadratic", verbose = self.verbose)
-
-
-
+        original_x = numpy.arange(n) / 15
+        original_y = numpy.sin(original_x)  
+        cut_x = original_x[::5]
+        cut_y = original_y[::5]        
+        ri = RI.interpolate_data(cut_x, cut_y, original_x, interpolate_kind = "quadratic", verbose = self.verbose)
+        
 
 if __name__ == '__main__': 
     

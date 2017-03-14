@@ -36,7 +36,11 @@ def interpolate_data(original_x, original_y, new_x, interpolate_kind = "default"
 
 def ri_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose = 0):
     """
-    db_record is the dictionary
+    Calculate the refractive index for wavelengths wl_um. The input is the data from refractiveindex.info and comes as one of 9 equations (not all of them are implemented) or as a table of values. For the latter interpolation will be used to get the values for the asked wavelengths. 
+    
+    db_record is the dictionary.
+    
+    
     """
 
     if "type" not in db_record:
@@ -317,11 +321,103 @@ def gvd_formula_4(x, s):
     return y
 
 
+    
+    
+def gvd_formula_5(x, s):
+
+    """
+    Formula 5 
+    http://www.wolframalpha.com/input/?i=second+derivative+of+a%2B+b*x%5Ec+%2B+d*x%5Ee+%2B+f*x%5Eg+%2Bh*x%5Ei+%2B+j*x%5Ek+with+respect+to+x
+    """
+    
+    if len(s) < 11:
+        _s = numpy.zeros(11, dtype = "float")
+        _s[:len(s)] = s
+        s = _s  
+
+    y = ( 
+        s[1] * (s[2] - 1) * s[2] * x**(s[2] - 2) 
+        + s[3] * (s[4] - 1) * s[4] * x**(s[4] - 2) 
+        + s[5] * (s[6] - 1) * s[6] * x**(s[6] - 2) 
+        + s[7] * (s[8] - 1) * s[8] * x**(s[8] - 2) 
+        + s[9] * (s[10] - 1) * s[10] * x**(s[10] - 2)
+    )
+    
+    return y
+    
+    
+def gvd_formula_6(x, s):  
+    """
+    http://www.wolframalpha.com/input/?i=second+derivative+of+1%2Ba%2B+b%2F(c-x%5E-2)+%2B+d%2F(e-x%5E-2)+%2B+f%2F(g-x%5E-2)+%2B+h%2F(i-x%5E-2)+%2B+j%2F(k-x%5E-2)+with+respect+to+x
+    """
+    
+    if len(s) < 11:
+        _s = numpy.zeros(11, dtype = "float")
+        _s[:len(s)] = s
+        s = _s
+        
+        
+    y = (
+        s[1] * (
+            8/((x**6) * (s[2] - 1/x**2)**3) 
+            + 6/((x**4) * (s[2] - 1/x**2)**2)
+        ) + s[3] * (
+            8/((x**6) * (s[4] - 1/x**2)**3) 
+            + 6/((x**4) * (s[4] - 1/x**2)**2)
+        ) + s[5] * (
+            8/((x**6) * (s[6] - 1/x**2)**3) 
+            + 6/((x**4) * (s[6] - 1/x**2)**2)
+        ) + s[7] * (
+            8/((x**6) * (s[8] - 1/x**2)**3) 
+            + 6/((x**4) * (s[8] - 1/x**2)**2)
+        ) + s[9] * (
+            8/((x**6) * (s[10] - 1/x**2)**3) 
+            + 6/((x**4) * (s[10] - 1/x**2)**2)
+        )   
+    ) 
+    
+    return y
+ 
+def gvd_formula_7(x, s):  
+    """
+    http://www.wolframalpha.com/input/?i=second+derivative+of+a+%2B+b%2F(x%5E2-0.028)%2Bc*(1%2F(x%5E2-0.028))%5E2+%2B+d*x%5E2+%2Be*x%5E4+%2Bf*x%5E6+with+respect+to+x
+    """
+
+    if len(s) < 6:
+        _s = numpy.zeros(6, dtype = "float")
+        _s[:len(s)] = s
+        s = _s
+
+    y = (
+        s[1] * (
+            (8 * x**2)/(x**2 - 0.028)**3 
+            - 2/(x**2 - 0.028)**2
+        ) 
+        + s[2] * (
+            (24 * x**2)/(x**2 - 0.028)**4 
+            - 4/(x**2 - 0.028)**3
+        ) 
+        + 2 * s[3] 
+        + 12 * s[4] * x**2 
+        + 30 * s[5] * x**4   
+    )
+    
+    return y
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 def gvd_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose = 0):
     """
-    db_record is the dictionary
+    Calculate the GVD for wavelengths wl_um. The GVD is calculated as the second derivative of the refractive index with respect to the wavelength. The input is the data from refractiveindex.info and comes as one of 9 equations (not all of them are implemented) or as a table of values. 
+    
+    For the equations, the second derivatives were calculated using WolframAlpha. 
     """
     
     if "type" not in db_record:
@@ -372,13 +468,19 @@ def gvd_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose 
         gvd = (1e21 * gvd * wl_um**3) / (2 * numpy.pi * (CONST.c_ms)**2)
         
     elif db_record["type"] == "formula 5":
-        raise NotImplementedError(error_string + "formula 5")   
+        DEBUG.verbose("  Using formula 5 to calculate group velocity dispersion", verbose_level = 1)
+        gvd = gvd_formula_5(wl_um, db_record["coefficients"])
+        gvd = (1e21 * gvd * wl_um**3) / (2 * numpy.pi * (CONST.c_ms)**2)  
         
     elif db_record["type"] == "formula 6":
-        raise NotImplementedError(error_string + "formula 6")
+        DEBUG.verbose("  Using formula 6 to calculate group velocity dispersion", verbose_level = 1)
+        gvd = gvd_formula_6(wl_um, db_record["coefficients"])
+        gvd = (1e21 * gvd * wl_um**3) / (2 * numpy.pi * (CONST.c_ms)**2)
         
     elif db_record["type"] == "formula 7":
-        raise NotImplementedError(error_string + "formula 7")
+        DEBUG.verbose("  Using formula 7 to calculate group velocity dispersion", verbose_level = 1)
+        gvd = gvd_formula_7(wl_um, db_record["coefficients"])
+        gvd = (1e21 * gvd * wl_um**3) / (2 * numpy.pi * (CONST.c_ms)**2)
         
     elif db_record["type"] == "formula 8":
         raise NotImplementedError(error_string + "formula 8")
