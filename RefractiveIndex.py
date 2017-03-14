@@ -39,8 +39,7 @@ def ri_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose =
     Calculate the refractive index for wavelengths wl_um. The input is the data from refractiveindex.info and comes as one of 9 equations (not all of them are implemented) or as a table of values. For the latter interpolation will be used to get the values for the asked wavelengths. 
     
     db_record is the dictionary.
-    
-    
+      
     """
 
     if "type" not in db_record:
