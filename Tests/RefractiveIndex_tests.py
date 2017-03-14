@@ -25,6 +25,9 @@ reload(DEBUG)
 class Test_ri_gvd_with_formulas(unittest.TestCase):
     """
     This test checks if the calculated values correspond to the values from refractiveindex.info. It checks this both by importing the files and by calculating it from info from the files. 
+    
+    The precision of the GVD calculation is about 0.002. This is a problem for very small GVD's, such as with gasses (formula 6). This is also the reason there are 2 tests for formula 6. 
+    
     """
 
 
@@ -216,10 +219,8 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         wl_um, ri = RI.get_ri(self.f6_paf, wl_um = wl_um, verbose = self.verbose)
         self.assertTrue(numpy.allclose(ri, ri_check, rtol = self.rtol_ri))
 
-        # there is an error with the GVD for formula 6
+
     def test_formula_6_gvd(self):
-#         print("GVD for formula 6 is not tested.")
-    
         wl_um = numpy.array([0.17, 0.7, 1.2, 1.65])
         gvd = RI.gvd_for_wavelengths(self.f6, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([0.22527, 0.016515, 0.010617, 0.0081099])
@@ -239,7 +240,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         wl_um, ri = RI.get_ri(self.f6b_paf, wl_um = wl_um, verbose = self.verbose)
         self.assertTrue(numpy.allclose(ri, ri_check, rtol = self.rtol_ri))
 
-        # there is an error with the GVD for formula 6
+        
     def test_formula_6b_gvd(self):    
         wl_um = numpy.array([0.15, 0.3, 0.4, 0.55])
         gvd = RI.gvd_for_wavelengths(self.f6b, wl_um, verbose = self.verbose) 
