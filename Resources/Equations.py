@@ -1,6 +1,6 @@
 """
-Equations
-- simple equations (exp, sin) that are rewritten to be used by the Crocodile.Resources.Mathematics.fit() function
+This file can be split in two parts:
+- simple equations (exp, sin) that are written to be used by the NPCTools.Resources.Mathematics.fit() function
 - complicated equations
 
 """
@@ -14,11 +14,20 @@ import numpy
 import math
 import scipy.special as SS
 
+import NPCTools.Resources.CommonFunctions as CF
 
 # SIMPLE EQUATIONS
 
 def quadratic(A, t):
-    return A[0] + A[1] * t + A[2] * t**2  
+    """
+    sum_i A[i] * t**i
+    """
+    A = CF.make_numpy_ndarray(A)
+    t = CF.make_numpy_ndarray(t)
+    res = 0
+    for i in range(len(A)):
+        res += A[i] * t**(i)
+    return res
 
 def rb_cos(A, t):
     """
@@ -29,11 +38,11 @@ def rb_cos(A, t):
     A[2]: frequency
     A[3]: phase
     """
+    A = CF.make_numpy_ndarray(A)
+    if len(A) != 4:
+        raise IndexError("rb_cos(): you should enter 4 parameters in list A.")
+    t = CF.make_numpy_ndarray(t)
     return A[0] + A[1] * numpy.cos(2 * numpy.pi * A[2] * t + numpy.pi*A[3])
-
-
-def linear(A, t):
-    return A[0] + A[1] * t  
 
 
 def rb_exp(A,t):
@@ -57,11 +66,7 @@ def rb_gaussian(A, t):
     A[3]: scale, before offset
 
     """
-    y = ( 
-        A[3] / (A[0] * numpy.sqrt(2*numpy.pi))
-    ) * numpy.exp( 
-        -(t - A[1])**2 / (2 * A[0]**2)
-    ) + A[2]
+    y = ( A[3] / (A[0] * numpy.sqrt(2*numpy.pi)) ) * numpy.exp( -(t - A[1])**2 / (2 * A[0]**2) ) + A[2]
     return y
 
 
@@ -387,8 +392,10 @@ def gvd_formula_7(x, s):
     
     return y
     
-    
-    
+
+if __name__ == "__main__": 
+
+    pass
     
     
 
