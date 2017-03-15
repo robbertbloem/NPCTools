@@ -1,3 +1,23 @@
+"""
+The intention of this script is to process data from RefractiveIndex.info. The data comes in various forms. 
+Some data is tabulated. The refractive index values are interpolated for the wavelengths of your choosing. It is not possible to calculate the GVD. Other data comes as a coefficients for equations. The best known is the Sellmeier equation, but there are others (see https://refractiveindex.info/database/doc/Dispersion%20formulas.pdf for the list). This script implements the first six. (I could implement the others, but I didn't find examples of them). 
+
+WARNING: RefractiveIndex.info is a widely used source, but comes with no warrenty. 
+- Check the references that are listed.
+- The references (and sometimes the comments) contain details about the measurement circumstances, for example temperature, pressure, atmosphere and how the sample is made (thin layer). 
+- The data is given for a range, the script will not calculate data outside this range. 
+
+The important functions are get_ri() and get_gvd(). You enter the path to a file and it will import the data. 
+
+The functions plot_ri() and plot_gvd() are wrappers around the get_xx() functions and make a plot. 
+
+The functions ri_for_wavelengths() and gvd_for_wavelengths() are helper functions and assume data in a particular format. 
+
+"""
+
+
+
+
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
@@ -11,6 +31,7 @@ import matplotlib.pyplot as plt
 import NPCTools.Resources.RI_read_yaml as RIRY
 import NPCTools.Resources.Constants as CONST
 import NPCTools.Resources.Equations as EQ
+import NPCTools.Resources.Mathematics as MATH
 import NPCTools.Resources.CommonFunctions as CF
 import NPCTools.Debug as DEBUG
 
@@ -131,22 +152,16 @@ def ri_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose =
 
     elif db_record["type"] == "tabulated n":
         DEBUG.verbose("  Tabulated data (type n)", verbose_level = 1)
-        ri = interpolate_data(db_record["data"][:,0], db_record["data"][:,1], wl_um)
+        ri = MATH.interpolate_data(db_record["data"][:,0], db_record["data"][:,1], wl_um)
         
     elif db_record["type"] == "tabulated nk":
         DEBUG.verbose("  Tabulated data (type nk)", verbose_level = 1)
-        ri = interpolate_data(db_record["data"][:,0], db_record["data"][:,1], wl_um)
+        ri = MATH.interpolate_data(db_record["data"][:,0], db_record["data"][:,1], wl_um)
         
     else:
         raise ValueError("The type of data in the database record is unknown (usually formula 1-9 or tabulated data). Type here is %s." % db_record["type"]) 
     
-    return ri
-
-
-
-    
-    
-    
+    return ri    
 
 
 def gvd_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose = 0):
@@ -171,10 +186,8 @@ def gvd_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose 
             raise ValueError("Error, wavelength %1.2f micron is too high! It should be below %1.2f micron." % (wl_um[-1], db_record["range"][-1]) )
     
     if "tabulated" in db_record["type"]:   
-        if wl_um[0] < db_record["data"][:,0][0]: 
-            raise ValueError("Error, wavelength %1.2f micron is too low! It should be above %1.2f micron." % (wl_um[0], db_record["data"][:,0][0]) )
-        elif wl_um[-1] > db_record["data"][:,0][-1]:
-            raise ValueError("Error, wavelength %1.2f micron is too high! It should be below %1.2f micron." % (wl_um[-1], db_record["data"][:,0][-1]) )
+        raise NotImplementedError("GVD can't be calculated for tabulated data.")
+        
         
     if db_record["type"] == "formula 1":
         DEBUG.verbose("  Using formula 1 to calculate group velocity dispersion", verbose_level = 1)
@@ -224,23 +237,16 @@ def gvd_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose 
     elif db_record["type"] == "formula 9":
         raise NotImplementedError(error_string + "formula 9")
 
-    elif db_record["type"] == "tabulated n":
-        raise NotImplementedError(error_string + "tabulated data (type n)")
-        
-    elif db_record["type"] == "tabulated nk":
-        raise NotImplementedError(error_string + "tabulated data (type nk)")
-    
     else:
-        raise ValueError("The type of data in the database record is unknown (usually formula 1-9 or tabulated data). Type here is %s." % db_record["type"])
+        raise ValueError("The type of data in the database record is unknown (usually formula 1-9). Type here is %s." % db_record["type"])
 
-    return gvd
-        
-
-        
-        
+    return wl_um, gvd
+             
         
 def get_ri(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, interpolate_kind = "default", verbose = 0):
     """
+    Import a file from RefractiveIndex.info and output the refractive index for the desired wavelengths. 
+    
     
     INPUT:
     paf (str): path and filename
@@ -267,6 +273,44 @@ def get_ri(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, interpolate_ki
     return wl_um, ri
 
 
+
+
+def effect_gvd(wl_um, gvd, t, d):
+    """
+    Calculates the effect the group velocity dispersion has on an unchirped Gaussian pulse. 
+    
+    Source:
+    http://www.rp-photonics.com/chromatic_dispersion.html
+    numpy.log() is natural log
+    
+    CHANGELOG:
+    20170315/RB: started function. 
+    
+    INPUT:
+    wl_um (ndarray): wavelengths in micron 
+    gvd: group velocity dispersion in fs^2/mm
+    t: pulse durations
+    d: thicknesses of material
+    
+    OUTPUT:
+    t_out (ndarray): 3D array with pulse lengths wl_um x t x d
+    
+    """
+    
+    t = CF.make_numpy_ndarray(t)
+    d = CF.make_numpy_ndarray(d)
+
+    W, T, D = numpy.meshgrid(wl_um, t, d, indexing = "ij")
+    G, dump, dump = numpy.meshgrid(gvd, t, d, indexing = "ij")
+
+    t_out = T * numpy.sqrt(1 + (4 * numpy.log(2) * G * D/ T**2)**2 )
+    
+    return t_out
+
+
+
+
+
 def get_gvd(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, interpolate_kind = "default", verbose = 0):
     """
     
@@ -291,7 +335,7 @@ def get_gvd(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, interpolate_k
 
     if len(wl_um) == 0:
         wl_um = numpy.linspace(um_range[0], um_range[1], num = n_steps)
-    gvd = gvd_for_wavelengths(db_record, wl_um, verbose = verbose)
+    wl_um, gvd = gvd_for_wavelengths(db_record, wl_um, verbose = verbose)
 
     if type(gvd) == int:
         return 0, 0
@@ -323,7 +367,7 @@ def plot_ri(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, ax = False, i
     ax.set_xlabel("Wavelength (micron)")
     ax.set_ylabel("Index of refraction n")
    
-    return ri
+    return wl_um, ri
 
 
 
@@ -351,7 +395,7 @@ def plot_gvd(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, ax = False, 
     ax.set_xlabel("Wavelength (micron)")
     ax.set_ylabel("GVD (fs^2/mm)")
     
-    return gvd
+    return wl_um, gvd
       
 
 
@@ -365,10 +409,37 @@ if __name__ == "__main__":
 #     # formula 1
 #     # https://refractiveindex.info/?shelf=main&book=ZnSe&page=Connolly
 #     paf = path + "database/main/ZnSe/Connolly.yml"
-#     ri = plot_ri(paf, um_range = [4, 18])
-#     gvd = plot_gvd(paf, um_range = [4, 8])
-#     print(ri[0])
-#     print(gvd[0])
+#     wl_um, ri = get_ri(paf, um_range = [4, 8])
+#     wl_um, gvd = get_gvd(paf, um_range = [4, 8])
+#     t = [30, 75, 150]
+#     d = [1,10]
+#     t_out = effect_gvd(wl_um, gvd, t, d)
+# #     print(numpy.shape(t_out))
+# #     print(gvd[50])
+#     _w = 50
+#     for _t in range(len(t)):
+#         for _d in range(len(d)):
+#             plt.plot(wl_um, t_out[:, _t, _d])
+#             print(wl_um[_w], t[_t], d[_d], t_out[_w,_t,  _d])
+    
+#     plt.plot(wl_um, t_out[0,:,0])
+#     plt.plot(wl_um, t_out[0,:,1])
+    
+#     print(t_out)
+    
+#     a = numpy.arange(3)
+#     b = numpy.arange(4) * 10
+#     c = numpy.arange(5) * 100
+#     
+#     A, B = numpy.meshgrid(a, b)
+#     
+#     print(A)
+#     print(B)
+#     
+#     print(A + B)
+#     
+#     print(numpy.shape(A), numpy.shape(B)) #, numpy.shape(C))
+    
     
 #     
 #     # formula 2
@@ -379,6 +450,61 @@ if __name__ == "__main__":
 #     ri = plot_ri(paf)
 #     gvd = plot_gvd(paf, um_range = [0.3, 0.6])
 #     print(gvd[0])
+
+
+    # formula 2
+    # https://refractiveindex.info/?shelf=main&book=CaF2&page=Daimon-20
+#     paf = path + "database/main/CaF2/Daimon-20.yml"
+#     wl_um, gvd = get_gvd(paf, um_range = [0.2, 2.3])
+#     t = [30, 75, 150]
+#     d = [1,10]
+#     t_out = effect_gvd(wl_um, gvd, t, d)
+#     _w = 50
+#     for _t in range(len(t)):
+#         for _d in range(len(d)):
+#             plt.plot(wl_um, t_out[:, _t, _d])
+#             print(wl_um[_w], t[_t], d[_d], t_out[_w,_t,  _d])
+
+
+#     paf = path + "database/main/CaF2/Daimon-20.yml"
+#     wl_um = [0.8]
+#     wl_um, gvd = get_gvd(paf, wl_um = wl_um)
+#     t = numpy.arange(10,150)
+#     d = [5]
+#     t_out = effect_gvd(wl_um, gvd, t, d)
+#     plt.plot(t, t_out[0,:,0])
+# 
+#     # formula 2 AND table
+#     # https://refractiveindex.info/?shelf=glass&book=BK7&page=SCHOTT
+#     paf = path + "database/glass/schott/N-BK7.yml"
+# #     wl_um = numpy.array([0.3, 0.4, 0.5, 0.6])
+#     um_range = [0.4, 2.4]
+# #     plot_ri(paf, um_range = um_range) 
+#     wl_um, ri = plot_ri(paf, um_range = um_range)
+#     wl_um, gvd = plot_gvd(paf, um_range = um_range) 
+#     print(gvd[0])
+#     t = numpy.arange(10,150)
+#     d = [5]
+#     t_out = effect_gvd(wl_um, gvd, t, d)
+#     plt.plot(t, t_out[0,:,0])
+
+
+
+    # formula 2 AND table
+    # https://refractiveindex.info/?shelf=glass&book=BK7&page=SCHOTT
+    paf = path + "database/glass/schott/N-BK7.yml"
+#     wl_um = numpy.array([0.3, 0.4, 0.5, 0.6])
+    wl_um = [0.8]
+
+    wl_um, ri = get_ri(paf, wl_um = wl_um)
+    wl_um, gvd = get_gvd(paf, wl_um = wl_um) 
+    print(gvd[0])
+    t = numpy.arange(10,150)
+    d = [10]
+    t_out = effect_gvd(wl_um, gvd, t, d)
+    plt.plot(t, t_out[0,:,0])
+    plt.plot(t, t)
+
 #     
 #     
 # #     paf = path + "database/main/CaF2/Daimon-20.yml"
@@ -393,9 +519,9 @@ if __name__ == "__main__":
 #     plot_ri(paf, um_range = [0.4, 17])
 # 
 # 
-    # tabulated nk
-    paf = path + "database/main/Ag/Babar.yml"
-    plot_ri(paf, um_range = [0.21, 12])
+#     # tabulated nk
+#     paf = path + "database/main/Ag/Babar.yml"
+#     plot_ri(paf, um_range = [0.21, 12])
 # 
 # 
     # formula 3
@@ -446,9 +572,6 @@ if __name__ == "__main__":
 #     
 #     ri = interpolate_data(db_record, data[:,0], interpolate_kind = "cubic")
 #     plt.plot(data[:,0], ri)
-
-
-
 
 
     

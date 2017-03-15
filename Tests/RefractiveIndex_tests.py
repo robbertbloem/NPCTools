@@ -22,6 +22,65 @@ reload(RI)
 reload(DEBUG)
 
 
+
+class Test_ri_with_tabulated_data(unittest.TestCase):
+
+
+    def setUp(self):
+    
+        self.verbose = 0
+
+        self.rtol_ri = 0.0001
+        self.rtol_gvd = 0.001
+        self.atol_gvd = 0.002
+
+        path = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndexDB/"
+        
+        # tabulated n
+        # https://refractiveindex.info/database/main/Al2O3/Boidin.yml
+        self.tab_n_paf = path + "database/main/Al2O3/Boidin.yml"
+
+        # tabulated nk
+        # https://refractiveindex.info/?shelf=main&book=Ag&page=Babar
+        self.tab_nk_paf = path + "database/main/Ag/Babar.yml"
+    
+
+    def test_tabulated_n(self):
+        
+        wl_um = numpy.array([0.30, 7.2822, 18.003])
+        ri_check = numpy.array([1.73756, 1.41644, 2.43259])
+        wl_um, ri = RI.get_ri(self.tab_n_paf, wl_um = wl_um, verbose = self.verbose)
+        self.assertTrue(numpy.allclose(ri, ri_check, rtol = self.rtol_ri)) 
+
+
+    def test_tabulated_n_with_interpolation(self):
+        
+        wl_um = numpy.array([0.31, 3.1, 13.3])
+        ri_check = numpy.array([1.7324, 1.6319, 1.4632])
+        wl_um, ri = RI.get_ri(self.tab_n_paf, wl_um = wl_um, verbose = self.verbose)
+        self.assertTrue(numpy.allclose(ri, ri_check, rtol = self.rtol_ri)) 
+
+   
+    def test_tabulated_nk(self):
+        
+        wl_um = numpy.array([0.2066, 0.3999, 8.266])
+        ri_check = numpy.array([1.079, 0.054, 3.227])
+        wl_um, ri = RI.get_ri(self.tab_nk_paf, wl_um = wl_um, verbose = self.verbose)
+        self.assertTrue(numpy.allclose(ri, ri_check, rtol = self.rtol_ri))        
+        
+        
+    def test_tabulated_nk_with_interpolation(self):
+        
+        wl_um = numpy.array([0.24, 1.2, 10.0])
+        ri_check = numpy.array([1.2038, 0.093133, 4.0038])
+        wl_um, ri = RI.get_ri(self.tab_nk_paf, wl_um = wl_um, verbose = self.verbose)
+        self.assertTrue(numpy.allclose(ri, ri_check, rtol = self.rtol_ri))    
+        
+        
+        
+        
+
+
 class Test_ri_gvd_with_formulas(unittest.TestCase):
     """
     This test checks if the calculated values correspond to the values from refractiveindex.info. It checks this both by importing the files and by calculating it from info from the files. 
@@ -104,11 +163,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         }
 
 
-        # tabulated n
-        self.tab_n_paf = path + "database/main/Al2O3/Boidin.yml"
 
-        # tabulated nk
-        self.tab_nk_paf = path + "database/main/Ag/Babar.yml"
     
     def test_formula_1_ri(self):
         wl_um = numpy.array([0.6, 4.0, 5.0, 6.0, 10.0, 18.0])
@@ -122,7 +177,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
     def test_formula_1_gvd(self):
         wl_um = numpy.array([0.6, 4.0, 5.0, 6.0, 10.0, 18.0])
-        gvd = RI.gvd_for_wavelengths(self.f1, wl_um, verbose = self.verbose) 
+        wl_um, gvd = RI.gvd_for_wavelengths(self.f1, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([2271.1, 75.299, -17.134, -136.21, -1221.0, -14134])
         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
 
@@ -142,7 +197,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
     def test_formula_2_gvd(self):
         wl_um = numpy.array([0.15, 0.4, 0.6, 0.8, 1.5, 2.3])
-        gvd = RI.gvd_for_wavelengths(self.f2, wl_um, verbose = self.verbose) 
+        wl_um, gvd = RI.gvd_for_wavelengths(self.f2, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([846.01, 67.513, 40.230, 27.796, 1.8579, -39.704])
         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
         
@@ -162,7 +217,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
     def test_formula_3_gvd(self):
         wl_um = numpy.array([0.5, 1.0, 1.5])
-        gvd = RI.gvd_for_wavelengths(self.f3, wl_um, verbose = self.verbose) 
+        wl_um, gvd = RI.gvd_for_wavelengths(self.f3, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([253.85, 81.590, 56.390])
         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
         
@@ -182,7 +237,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
     def test_formula_4_gvd(self):
         wl_um = numpy.array([0.25, 0.6, 1.0])
-        gvd = RI.gvd_for_wavelengths(self.f4, wl_um, verbose = self.verbose) 
+        wl_um, gvd = RI.gvd_for_wavelengths(self.f4, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([637.15, 111.14, 45.633])
         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
         
@@ -202,7 +257,7 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
     def test_formula_5_gvd(self):
         wl_um = numpy.array([0.35, 0.5, 0.63])
-        gvd = RI.gvd_for_wavelengths(self.f5, wl_um, verbose = self.verbose) 
+        wl_um, gvd = RI.gvd_for_wavelengths(self.f5, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([129.69, 86.012, 64.982])
         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
 
@@ -222,11 +277,10 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
 
     def test_formula_6_gvd(self):
         wl_um = numpy.array([0.17, 0.7, 1.2, 1.65])
-        gvd = RI.gvd_for_wavelengths(self.f6, wl_um, verbose = self.verbose) 
+        wl_um, gvd = RI.gvd_for_wavelengths(self.f6, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([0.22527, 0.016515, 0.010617, 0.0081099])
         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
-        print(gvd)
-        print(gvd_check)
+
         wl_um, gvd = RI.get_gvd(self.f6_paf, wl_um = wl_um, verbose = self.verbose)
         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
 
@@ -243,11 +297,10 @@ class Test_ri_gvd_with_formulas(unittest.TestCase):
         
     def test_formula_6b_gvd(self):    
         wl_um = numpy.array([0.15, 0.3, 0.4, 0.55])
-        gvd = RI.gvd_for_wavelengths(self.f6b, wl_um, verbose = self.verbose) 
+        wl_um, gvd = RI.gvd_for_wavelengths(self.f6b, wl_um, verbose = self.verbose) 
         gvd_check = numpy.array([0.40387, 0.068418, 0.046791, 0.030277])
         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
-        print(gvd)
-        print(gvd_check)
+
         wl_um, gvd = RI.get_gvd(self.f6b_paf, wl_um = wl_um, verbose = self.verbose)
         self.assertTrue(numpy.allclose(gvd, gvd_check, rtol = self.rtol_gvd, atol = self.atol_gvd))
 
@@ -262,7 +315,7 @@ if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase( Test_ri_gvd_with_formulas)
     unittest.TextTestRunner(verbosity=1).run(suite) 
  
- 
-
+    suite = unittest.TestLoader().loadTestsFromTestCase( Test_ri_with_tabulated_data)
+    unittest.TextTestRunner(verbosity=1).run(suite) 
 
 
