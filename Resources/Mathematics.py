@@ -171,8 +171,6 @@ def correlation_fft(a, v = -1, flag_normalize = True, flag_verbose = False):
 
 ### DERIVATIVE ###
 
-
-
 def derivative(x, y):
     """
     20110909/RB: rudimentary method to calculate the derivative
