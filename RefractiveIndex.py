@@ -275,7 +275,7 @@ def get_ri(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, interpolate_ki
 
 
 
-def effect_gvd(wl_um, gvd, t, d):
+def effect_gvd(wl_um, gvd, t_fs, d_mm):
     """
     Calculates the effect the group velocity dispersion has on an unchirped Gaussian pulse. 
     
@@ -297,11 +297,11 @@ def effect_gvd(wl_um, gvd, t, d):
     
     """
     
-    t = CF.make_numpy_ndarray(t)
-    d = CF.make_numpy_ndarray(d)
+    t_fs = CF.make_numpy_ndarray(t_fs)
+    d_mm = CF.make_numpy_ndarray(d_mm)
 
-    W, T, D = numpy.meshgrid(wl_um, t, d, indexing = "ij")
-    G, dump, dump = numpy.meshgrid(gvd, t, d, indexing = "ij")
+    W, T, D = numpy.meshgrid(wl_um, t_fs, d_mm, indexing = "ij")
+    G, dump, dump = numpy.meshgrid(gvd, t_fs, d_mm, indexing = "ij")
 
     t_out = T * numpy.sqrt(1 + (4 * numpy.log(2) * G * D/ T**2)**2 )
     
