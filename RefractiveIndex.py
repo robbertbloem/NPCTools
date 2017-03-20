@@ -261,7 +261,7 @@ def get_ri(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, interpolate_ki
     DEBUG.verbose("Importing data for %s by %s" % (temp[-2], temp[-1][:-4]), verbose_level = 1)
 
     db_record = RIRY.import_refractive_index(paf = paf, verbose = verbose)
-    DEBUG.verbose("  Imported data", verbose_level = 1)
+    DEBUG.verbose("  Imported data", verbose_level = 0)
     
     if len(wl_um) == 0:
         wl_um = numpy.linspace(um_range[0], um_range[1], num = n_steps)
@@ -327,7 +327,7 @@ def get_gvd(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, interpolate_k
     DEBUG.verbose("Importing data for %s by %s" % (temp[-2], temp[-1][:-4]), verbose_level = 1)
 
     db_record = RIRY.import_refractive_index(paf = paf, verbose = verbose)
-    DEBUG.verbose("  Imported data", verbose_level = 1)
+    DEBUG.verbose("  Imported data", verbose_level = 0)
 
     # error checking
 #     del db_record["type"]
