@@ -20,6 +20,7 @@ from scipy.interpolate import interp1d
 
 import itertools
 
+import NPCTools.Resources.CommonFunctions as CF
 import NPCTools.Resources.Constants as CONST
 import NPCTools.Debug as DEBUG
 
@@ -210,5 +211,74 @@ def interpolate_data(original_x, original_y, new_x, interpolate_kind = "default"
     new_y = f(new_x)    
 
     return new_y
+
+
+
+
+def interpolate_two_datasets(x1, y1, x2, y2, x_step = 1, interpolation_kind = "default", verbose = 0):
+    """
+    Take datasets 1 and 2 and unify the x-axis, interpolate the y-values of both for the new axis. The new x-axis will be only where x1 and x2 overlap. 
+    
+    INPUTS:
+    x1, x2 (ndarray, list): x-axes of the data
+    y1, y2 (ndarray, list): y values of the data
+    x_step (number): step size of the x-axis of the interpolated data
+    interpolation_kind (string): Specifies the kind of interpolation as a string ('linear', 'nearest', 'zero', 'slinear', 'quadratic, 'cubic', where 'slinear', 'quadratic' and 'cubic' refer to a spline interpolation of first, second or third order) or as an integer specifying the order of the spline interpolator to use. Default is 'linear'
+    
+    OUTPUTS:
+    new_x (ndarray): new x-axis
+    new_y1, new_y2 (ndarray): the interpolated values of y1 and y2
+    
+    
+    """
+    
+    if interpolate_kind == "default":
+        interpolate_kind = "linear"
+        
+        
+    x1 = CF.make_numpy_ndarray(x1)
+    y1 = CF.make_numpy_ndarray(y1)
+    x2 = CF.make_numpy_ndarray(x2)
+    y2 = CF.make_numpy_ndarray(y2)
+    
+    if x1[0] > x1[-1]:
+        x1 = x1[::-1]
+        y1 = y1[::-1]
+
+    if x2[0] > x2[-1]:
+        x2 = x2[::-1]
+        y2 = y2[::-1]
+    
+    
+    if x1[0] > x2[0]:
+        start = x1[0]
+    else:
+        start = x2[0]
+        
+    if x1[-1] < x2[-1]:
+        finish = x1[-1]
+    else:
+        finish = x2[-1]    
+
+    new_x = numpy.arange(start, finish + 1, step = x_step)
+
+    f = interp1d(x1, y1, kind = interpolation_kind)
+    new_y1 = f(new_x)
+    
+    f = interp1d(x2, y2, kind = interpolation_kind)
+    new_y2 = f(new_x)
+    
+    return new_x, new_y1, new_y2
+
+
+
+
+
+
+
+
+
+
+
 
 
