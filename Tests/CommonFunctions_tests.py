@@ -23,6 +23,7 @@ global suite_list
 suite_list = [
     "Suite 1: Test make numpy_ndarray",
     "Suite 2: Test string with numbers to list",
+    "Suite 3: Test find index for value",
 ]
 
 # add arguments
@@ -30,6 +31,7 @@ parser.add_argument("-v", "--verbose", action = "store_true", help = "Increase o
 parser.add_argument("-r", "--reload", action = "store_true", help = "Reload modules")
 parser.add_argument("-s1", "--skip1", action = "store_true", help = suite_list[0])
 parser.add_argument("-s2", "--skip2", action = "store_true", help = suite_list[1])
+parser.add_argument("-s3", "--skip3", action = "store_true", help = suite_list[2])
 
 
 # process
@@ -54,6 +56,11 @@ def execute(args):
     else:
         DEBUG.verbose("Skipping :" + suite_list[1], True)
 
+    if args.skip3 == False:
+        suite = unittest.TestLoader().loadTestsFromTestCase( Test_find_index_for_value)
+        unittest.TextTestRunner(verbosity=1).run(suite)    
+    else:
+        DEBUG.verbose("Skipping :" + suite_list[2], True)
 
 
    
@@ -211,6 +218,104 @@ class Test_string_with_numbers_to_list(unittest.TestCase):
         res = CF.string_with_numbers_to_list(string)
         self.assertTrue(numpy.allclose(res, check))
 
+
+
+
+
+class Test_find_index_for_value(unittest.TestCase):
+    """
+    CHANGELOG:
+    20170309/RB: started the suite
+
+    """
+
+    def setUp(self):
+
+        self.flag_verbose = args.verbose
+
+
+    def test_ints(self):
+        
+        tests = [
+            {"val": 4, "round": "norm", "res": 4},
+            {"val": 4.4, "round": "norm", "res": 4},
+            {"val": 4.6, "round": "norm", "res": 5},
+            {"val": 4.5, "round": "norm", "res": 5},
+            
+            {"val": 4, "round": "up", "res": 4},
+            {"val": 4.4, "round": "up", "res": 5},
+            {"val": 4.6, "round": "up", "res": 5},
+
+            {"val": 4, "round": "down", "res": 4},
+            {"val": 4.4, "round": "down", "res": 4},
+            {"val": 4.6, "round": "down", "res": 4},
+        ]
+        
+        list = numpy.arange(10)
+        
+        for t in tests:
+            res = CF.find_index_for_value(list, value = t["val"], round = t["round"])
+            self.assertEqual(t["res"], res)
+            
+            
+    def test_floats(self):
+        
+        tests = [
+            {"val": 4, "round": "norm", "res": 4},
+            {"val": 4.4, "round": "norm", "res": 5},  
+             
+            {"val": 4, "round": "up", "res": 5},
+            {"val": 4.4, "round": "up", "res": 5},
+            {"val": 4.6, "round": "up", "res": 6},
+
+            {"val": 4, "round": "down", "res": 4},
+            {"val": 4.4, "round": "down", "res": 4},
+            {"val": 4.6, "round": "down", "res": 5},         
+        ]
+        
+        list = numpy.linspace(0,10,12)
+        
+        for t in tests:
+            res = CF.find_index_for_value(list, value = t["val"], round = t["round"])
+            self.assertEqual(t["res"], res)      
+
+     
+    
+#     def test_simple(self):
+#         list = numpy.arange(10) - 0.1
+#         value = 4
+#         res = CF.find_index_for_value(list, value, round = "norm")
+#         print(res)
+# 
+# 
+#     def test_simple_2(self):
+#         list = numpy.arange(10) - 0.1
+#         value = 4.2
+#         res = CF.find_index_for_value(list, value, round = "norm")
+#         print(res)
+#         
+#         
+#     def test_simple_3(self):
+#         list = numpy.arange(10) - 0.1
+#         value = 4.8
+#         res = CF.find_index_for_value(list, value, round = "norm")
+#         print(res)
+
+
+
+#     
+#     def test_string_with_float_commas(self):      
+#         string = "0.0, 1.1, 2.2"
+#         check = [0.0, 1.1, 2.2]
+#         res = CF.string_with_numbers_to_list(string)
+#         self.assertTrue(numpy.allclose(res, check))
+# 
+# 
+#     def test_string_with_float_commas_enter(self):      
+#         string = "0.0, 1.1\n 2.2"
+#         check = [0.0, 1.1, 2.2]
+#         res = CF.string_with_numbers_to_list(string)
+#         self.assertTrue(numpy.allclose(res, check))
 
 
 
