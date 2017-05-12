@@ -93,6 +93,8 @@ def import_streak(paf):
     meta_dict["Processing"]["Filename"] = paf
 
     data2 = struct.unpack_from("i" * width * height, data, offset = comment_length+64)
+    
+    data2 = numpy.asarray(data2, dtype = numpy.float64)
 
     data2 = numpy.reshape(data2, (height, width))
 
@@ -199,32 +201,82 @@ def fit_laser_pulse(x, y, z, xrange = [0,-1], yrange = [0,-1], frame = "data"):
     print("Offset:", A_laser[2])
     print("Scale:", A_laser[3])
     
-    plt.plot(_y, data)
-    plt.plot(_y, out)
+#     plt.plot(_y, data)
+#     plt.plot(_y, out)
+    
+    r = data - out
+    
+    fig = plt.figure()
+    
+    ax = [0] * 2
+    ax[0] = fig.add_subplot(211)
+    ax[1] = fig.add_subplot(212)
+    
+    ax[0].plot(_y, data)
+    ax[0].plot(_y, out)
+    
+    ax[1].plot(_y, r)
+    
+    ax[0].set_xlim(9.1, 10.1)
+    ax[1].set_xlim(9.1, 10.1)
     
     return A_laser
 
 
 
 
-def gaussian_single_exponential(t, a, b, c):
+# def gaussian_single_exponential(t, a, b, c, d, e):
+# 
+#     """
+#     A[0]: sigma (sigma^2 = variance)
+#     A[1]: mu (mean)
+#     A[2]: offset 
+#     A[3]: scale, before offset
+# 
+#     """
+#     
+#     g = numpy.fft.fft(( b / (t[1] * numpy.sqrt(2*numpy.pi)) ) * numpy.exp( -(t[0] - t[2])**2 / (2 * t[1]**2) ) )
+#     e = numpy.fft.fft( d * numpy.exp(-t[0] / a) + c)
+#     
+#     f = g * e
+#     
+#     y = numpy.real(numpy.fft.ifft(f)) 
+# 
+#     return y    
 
+
+
+# def gaussian_single_exponential(t, b, c, d, e, f):
+#     """
+#     t[1] a A[0]: sigma (sigma^2 = variance) 
+#     b A[1]: mu (mean)
+#     c A[2]: offset 
+#     d A[3]: scale, before offset
+#     e: amplitude exponential
+#     f = decay rate
+#     """
+#     g = ( d / (t[1] * numpy.sqrt(2*numpy.pi)) ) * numpy.exp( -(t[0] - b)**2 / (2 * t[1]**2) ) 
+#     h = e * numpy.exp(-t[0] / f) 
+#     _g = numpy.fft.fft(g)
+#     _h = numpy.fft.fft(h)
+#     y = numpy.real(numpy.fft.ifft(_g * _h)) + c
+#     return y
+
+def gaussian_single_exponential(t, b, c, d, f):
     """
-    A[0]: sigma (sigma^2 = variance)
-    A[1]: mu (mean)
-    A[2]: offset 
-    A[3]: scale, before offset
-
+    t[1] a A[0]: sigma (sigma^2 = variance) 
+    b A[1]: mu (mean)
+    c A[2]: offset 
+    d A[3]: scale, before offset
+    e: amplitude exponential
+    f = decay rate
     """
-    
-    g = numpy.fft.fft(( b / (t[1] * numpy.sqrt(2*numpy.pi)) ) * numpy.exp( -(t[0] - t[2])**2 / (2 * t[1]**2) ) )
-    e = numpy.fft.fft( numpy.exp(-t[0] / a))
-    
-    f = g * e
-    
-    y = numpy.real(numpy.fft.ifft(f)) + c
-
-    return y    
+    g = numpy.exp( -(t[0] - b)**2 / (2 * t[1]**2) ) 
+    h = numpy.exp(-t[0] / f) 
+    _g = numpy.fft.fft(g)
+    _h = numpy.fft.fft(h)
+    y = d * numpy.real(numpy.fft.ifft(_g * _h)) + c
+    return y
 
 
 def fit_lifetime(x, y, z, A_laser = [], xrange = [0,-1], yrange = [0,-1], frame = "data"):
@@ -238,30 +290,44 @@ def fit_lifetime(x, y, z, A_laser = [], xrange = [0,-1], yrange = [0,-1], frame 
     else:
         _y = y
 
-    t = [_y, A_laser[0], A_laser[1]] #, A_laser[2]]
-    A = scipy.array([y[-1]/4, A_laser[3], 0])
-    print(A)
-    param = (t, data, gaussian_single_exponential)
-    
-#     A_out, cov_x, infodict, mesg, ier = scipy.optimize.leastsq(MATH.minimize, A, args=param, full_output=True)
-    
-    
-    A_out, matcov = scipy.optimize.curve_fit(gaussian_single_exponential, t, data, p0 = A)
-    
-    
-    
-#     A_out = scipy.optimize.leastsq(scipy.optimize.minimize, A, args = param)
-    
-#     A_out = scipy.optimize.curve_fit(gaussian_single_exponential, t, data, p0 = A)[0]
 
 
+    t = [_y, A_laser[0]] #, A_laser[2]]
+    A_start = scipy.array([A_laser[1], A_laser[2], A_laser[3], y[-1]/4, ])
+    print(A_start)
+    
+    sigma = 1/numpy.sqrt(data)
 
-    print(len(A_out))
+#     data -= numpy.amin(data)
+#     data /= numpy.amax(data)
+
+#     temp = numpy.isnan(sigma)
+#     print(temp)
+
+    A_out, matcov = scipy.optimize.curve_fit(gaussian_single_exponential, t, data, p0 = A_start, sigma = sigma, absolute_sigma = False)
+    
+    
     print(A_out)
-    out = gaussian_single_exponential(t, A_out[0], A_out[1], A_out[2])
+    out = gaussian_single_exponential(t, A_out[0], A_out[1], A_out[2], A_out[3])
 
-    plt.plot(_y, data)
-    plt.plot(_y, out)
+    r = data - out
+
+    fig = plt.figure()
+    
+    ax = [0] * 2
+    ax[0] = fig.add_subplot(211)
+    ax[1] = fig.add_subplot(212)
+    
+    ax[0].plot(_y, data)
+    ax[0].plot(_y, out)
+    
+    ax[1].plot(_y, r)
+    
+    return fig, ax, _y, out
+
+
+#     plt.plot(_y, data)
+#     plt.plot(_y, out)
 
 
 if __name__ == "__main__": 
