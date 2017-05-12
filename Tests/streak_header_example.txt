@@ -1,0 +1,227 @@
+0 b'[Application]
+1 Enconding=UTF-8
+2 Date="4/25/2017"
+3 Time="3:53:20 PM.977"
+4 Software="HPD-TA"
+5 Application=2
+6 ApplicationTitle="High Performance Digital Temporal Analyzer"
+7 SoftwareVersion="9.3 pf8"
+8 SoftwareDate="08.07.2015"
+
+9 [Camera]
+10 AMD=N
+11 EMD=E
+12 SMD=W
+13 SPX=2
+14 ATP=N
+15 SSP=H
+16 ESC=I
+17 ATG=O
+18 CSW=O
+19 OSS=L
+20 PEC=O
+21 ATD=0
+22 OBN=2
+23 OMD=A
+24 SDV="516
+25 0
+26 508"
+27 TimingMode="Internal timing"
+28 TriggerMode="Edge trigger"
+29 TriggerSource="Digital I/F"
+30 TriggerPolarity="neg."
+31 Binning="2 x 2"
+32 ScanMode="Subarray"
+33 SubarrayHWidthValue=1344
+34 SubarrayVWidthValue=1016
+35 BinningValue=1
+36 ScanModeValue=2
+37 TriggerGlobalExposure="Global reset"
+38 Cooling="On"
+39 DefectPixelCorrection="On"
+40 TriggerInDelay="0"
+41 FrameBundleNumber="2"
+42 Trigger1OutSignal="Low"
+43 Trigger1OutRef="End of sensor readout"
+44 Trigger1OutPolarity="Negative"
+45 Trigger1OutDelay="0"
+46 Trigger1OutWidth="0.01"
+47 Trigger2OutSignal="Low"
+48 Trigger2OutRef="End of sensor readout"
+49 Trigger2OutPolarity="Negative"
+50 Trigger2OutDelay="0"
+51 Trigger2OutWidth="0.01"
+52 Trigger3OutSignal="Low"
+53 Trigger3OutRef="End of sensor readout"
+54 Trigger3OutPolarity="Negative"
+55 Trigger3OutDelay="0"
+56 Trigger3OutWidth="0.01"
+57 SubarrayVWidth=1016
+58 SubarrayHWidth=1344
+59 CameraName="C11440-22C"
+60 SerialNumber="003312"
+61 Type=38
+62 SubType=82
+
+63 [Acquisition]
+64 NrExposure=85698
+65 NrTrigger=0
+66 ExposureTime=10 ms
+67 AcqMode=3
+68 DataType=8
+69 DataTypeOfSingleImage=7
+70 CurveCorr=0
+71 DefectCorrection=0
+72 areSource="0
+73 0
+74 672
+75 508"
+76 areGRBScan="176
+77 0
+78 672
+79 508"
+80 pntOrigCh="352
+81 516"
+82 pntOrigFB="0
+83 0"
+84 pntBinning="2
+85 2"
+86 BytesPerPixel=4
+87 IsLineData=0
+88 BacksubCorr=0
+89 ShadingCorr=0
+90 ZAxisLabel=Intensity
+91 ZAxisUnit=Count
+92 miMirrorRotate=0
+93 miPCThreshold=123
+
+94 [Grabber]
+95 Applet="ACQ_FullAreaGray8.dll"
+96 Type=11
+97 SubType=3
+
+98 [DisplayLUT]
+99 EntrySize=9
+100 LowerValue=0
+101 UpperValue=22
+102 BitRange="16x bit"
+103 Color=1
+104 LUTType=0
+105 LUTInverted=0
+106 AutoLutInLiveMode=0
+107 DisplayNegative=0
+108 Gamma=1
+109 First812OvlCol=1
+110 Lut16xShift=0
+111 Lut16xOvlVal=2147483647
+
+112 [ExternalDevices]
+113 TriggerDelay=150
+114 PostTriggerTime=10
+115 ExposureTime=10
+116 TDStatusCableConnected=0
+117 ConnectMonitorOut=0
+118 ConnectResetIn=0
+119 TriggerMethod=2
+120 UseDTBE=0
+121 ExpTimeAddMultiple=-1
+122 MultipleOfSweep=1
+123 A6538Connected=0
+124 CounterBoardInstalled=0
+125 MotorizedSlitInstalled=0
+126 UseSpecAsMono=0
+127 GPIBInstalled=0
+128 CounterBoardIOBase=0
+129 MotorizedSlitPortID=1
+130 GPIBIOBase=0
+
+131 [Streak camera]
+132 UseDevice=-1
+133 DeviceName="C10910"
+134 PluginName="M10913-11"
+135 InstalledOption0=M10914-01
+136 GPIBCableConnected=0
+137 GPIBBase=0
+138 Time Range="10 ns"
+139 Mode="Operate"
+140 Gate Mode="Normal"
+141 MCP Gain="63"
+142 Shutter="Open"
+143 Trig. Mode="Cont"
+144 Trigger status="Reset"
+145 Trig. level="1"
+146 Trig. slope="Rising"
+147 FocusTimeOver="5"
+
+148 [Spectrograph]
+149 UseDevice=-1
+150 DeviceName="SpectraPro(USB)"
+151 PluginName="SP2-300i"
+152 GPIBCableConnected=0
+153 GPIBBase=6
+154 Wavelength="589.966"
+155 Grating="50 g/mm"
+156 Blaze="600"
+157 Ruling="50"
+158 Exit Mirror="Front"
+159 Entry Mirror="Front"
+160 Front Exit Slitw.="0"
+161 Front Ent. Slitw.="0"
+162 Side Exit Slitw.="0"
+163 Side Ent. Slitw.="100"
+164 Turret="1"
+
+165 [Delay box]
+166 UseDevice=-1
+167 DeviceName="C1097-05"
+168 PluginName=""
+169 GPIBCableConnected=0
+170 GPIBBase=0
+171 Delay Time="14260"
+172 Delay Mode="PC Delay"
+173 Control Mode="Remote"
+
+174 [Delay2 box]
+175 UseDevice=-1
+176 DeviceName="C10647-01"
+177 PluginName=""
+178 GPIBCableConnected=0
+179 GPIBBase=3
+180 Trig. Mode="Ext. rising"
+181 Repetition Rate="2000"
+182 Setting="M1"
+183 Delay A="0.00049985"
+184 Width A="0.00000002"
+185 Delay B="0"
+186 Width B="0.00000002"
+187 Delay C="0"
+188 Width C="0.000000002"
+189 Delay D="0"
+190 Width D="0.000000002"
+191 Ss Trigger="Idle"
+192 Trigger Div.="0"
+193 Man.Ctrl="Hide"
+
+194 [Scaling]
+195 ScalingXType=2
+196 ScalingXScale=1
+197 ScalingXUnit="nm"
+198 ScalingXScalingFile="#1369084
+199 0672"
+200 ScalingYType=2
+201 ScalingYScale=2
+202 ScalingYUnit="ns"
+203 ScalingYScalingFile="#1371772
+204 0508"
+
+[Comment]
+205 UserComment=""'
+
+
+
+
+
+
+b'[Application],Enconding=UTF-8,Date="4/25/2017",Time="4:09:19 PM.213",Software="HPD-TA",Application=2,ApplicationTitle="High Performance Digital Temporal Analyzer",SoftwareVersion="9.3 pf8",SoftwareDate="08.07.2015"\r\n
+[Camera],AMD=N,EMD=E,SMD=W,SPX=2,ATP=N,SSP=H,ESC=I,ATG=O,CSW=O,OSS=L,PEC=O,ATD=0,OBN=2,OMD=A,SDV="516,0,508",TimingMode="Internal timing",TriggerMode="Edge trigger",TriggerSource="Digital I/F",TriggerPolarity="neg.",Binning="2 x 2",ScanMode="Subarray",SubarrayHWidthValue=1344,SubarrayVWidthValue=1016,BinningValue=1,ScanModeValue=2,TriggerGlobalExposure="Global reset",Cooling="On",DefectPixelCorrection="On",TriggerInDelay="0",FrameBundleNumber="2",Trigger1OutSignal="Low",Trigger1OutRef="End of sensor readout",Trigger1OutPolarity="Negative",Trigger1OutDelay="0",Trigger1OutWidth="0.01",Trigger2OutSignal="Low",Trigger2OutRef="End of sensor readout",Trigger2OutPolarity="Negative",Trigger2OutDelay="0",Trigger2OutWidth="0.01",Trigger3OutSignal="Low",Trigger3OutRef="End of sensor readout",Trigger3OutPolarity="Negative",Trigger3OutDelay="0",Trigger3OutWidth="0.01",SubarrayVWidth=1016,SubarrayHWidth=1344,CameraName="C11440-22C",SerialNumber="003312",Type=38,SubType=82\r\n
+[Acquisition],NrExposure=103622,NrTrigger=0,ExposureTime=10 ms,AcqMode=3,DataType=8,DataTypeOfSingleImage=7,CurveCorr=0,DefectCorrection=0,areSource="0,0,672,508",areGRBScan="176,0,672,508",pntOrigCh="352,516",pntOrigFB="0,0",pntBinning="2,2",BytesPerPixel=4,IsLineData=0,BacksubCorr=0,ShadingCorr=0,ZAxisLabel=Intensity,ZAxisUnit=Count,miMirrorRotate=0,miPCThreshold=123\r\n[Grabber],Applet="ACQ_FullAreaGray8.dll",Type=11,SubType=3\r\n[DisplayLUT],EntrySize=9,LowerValue=0,UpperValue=23,BitRange="16x bit",Color=1,LUTType=0,LUTInverted=0,AutoLutInLiveMode=0,DisplayNegative=0,Gamma=1,First812OvlCol=1,Lut16xShift=0,Lut16xOvlVal=2147483647\r\n[ExternalDevices],TriggerDelay=150,PostTriggerTime=10,ExposureTime=10,TDStatusCableConnected=0,ConnectMonitorOut=0,ConnectResetIn=0,TriggerMethod=2,UseDTBE=0,ExpTimeAddMultiple=-1,MultipleOfSweep=1,A6538Connected=0,CounterBoardInstalled=0,MotorizedSlitInstalled=0,UseSpecAsMono=0,GPIBInstalled=0,CounterBoardIOBase=0,MotorizedSlitPortID=1,GPIBIOBase=0\r\n[Streak camera],UseDevice=-1,DeviceName="C10910",PluginName="M10913-11",InstalledOption0=M10914-01,GPIBCableConnected=0,GPIBBase=0,Time Range="10 ns",Mode="Operate",Gate Mode="Normal",MCP Gain="63",Shutter="Open",Trig. Mode="Cont",Trigger status="Reset",Trig. level="1",Trig. slope="Rising",FocusTimeOver="5"\r\n[Spectrograph],UseDevice=-1,DeviceName="SpectraPro(USB)",PluginName="SP2-300i",GPIBCableConnected=0,GPIBBase=6,Wavelength="569.992",Grating="50 g/mm",Blaze="600",Ruling="50",Exit Mirror="Front",Entry Mirror="Front",Front Exit Slitw.="0",Front Ent. Slitw.="0",Side Exit Slitw.="0",Side Ent. Slitw.="100",Turret="1"\r\n[Delay box],UseDevice=-1,DeviceName="C1097-05",PluginName="",GPIBCableConnected=0,GPIBBase=0,Delay Time="14260",Delay Mode="PC Delay",Control Mode="Remote"\r\n[Delay2 box],UseDevice=-1,DeviceName="C10647-01",PluginName="",GPIBCableConnected=0,GPIBBase=3,Trig. Mode="Ext. rising",Repetition Rate="2000",Setting="M1",Delay A="0.00049985",Width A="0.00000002",Delay B="0",Width B="0.00000002",Delay C="0",Width C="0.000000002",Delay D="0",Width D="0.000000002",Ss Trigger="Idle",Trigger Div.="0",Man.Ctrl="Hide"\r\n[Scaling],ScalingXType=2,ScalingXScale=1,ScalingXUnit="nm",ScalingXScalingFile="#1369085,0672",ScalingYType=2,ScalingYScale=1,ScalingYUnit="ns",ScalingYScalingFile="#1371773,0508"[Comment],UserComment=""'
