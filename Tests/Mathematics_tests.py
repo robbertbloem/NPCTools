@@ -81,6 +81,33 @@ class Test_interpolate_data(unittest.TestCase):
         ri = MATH.interpolate_data(cut_x, cut_y, original_x, interpolate_kind = "quadratic", verbose = self.verbose)
         
 
+
+class Test_interpolate_two_data_sets(unittest.TestCase):
+    """
+    Some basic checks of the interpolation routine. It checks if it works, but doesn't check the data. 
+    """
+
+
+    def setUp(self):
+        self.verbose = 0
+
+    def test_default(self):
+    
+        x1 = numpy.arange(50,100)
+        y1 = numpy.arange(50,100)
+        x2 = numpy.arange(75,125)
+        y2 = numpy.arange(75,125)
+    
+        MATH.interpolate_two_datasets(x1, y1, x2, y2, x_step = 1, interpolation_kind = "default", verbose = self.verbose)
+    
+        original_x = [0,1]
+        original_y = [2,3]
+        new_x = numpy.array([0, 0.5, 1.0])
+        ri = MATH.interpolate_data(original_x, original_y, new_x, interpolate_kind = "default", verbose = self.verbose)
+        ri_check = numpy.array([2.0, 2.5, 3.0])
+        self.assertTrue(numpy.all(ri == ri_check))
+
+
 if __name__ == '__main__': 
     
 
@@ -88,7 +115,8 @@ if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_interpolate_data)
     unittest.TextTestRunner(verbosity=1).run(suite) 
  
- 
+    suite = unittest.TestLoader().loadTestsFromTestCase(Test_interpolate_two_data_sets)
+    unittest.TextTestRunner(verbosity=1).run(suite) 
  
 
 
