@@ -71,8 +71,62 @@ def string_with_numbers_to_list(string):
     
     
 
+def find_index_for_value(list, value, round = "norm"):
+    """
+    Find the index for a value in a list.
+    
+    round: norm, up or down
+    
+    Take a list [10, 11, 12, 13] and a value 11.6. The index can be 1 or 2. 
+    - round norm: 12 is closer than 11, so returned index is of 12 (i.e. 2)
+    - round up: return the index of 12 (i.e. 2)
+    - round down: return the index of 11 (i.e. 1)
+     
+    """
 
 
+    list = numpy.array(list)
+    idx = numpy.argwhere(list > value)[0][0]
+    
+    if idx == 0:
+        return idx
+
+    v0 = list[idx - 1]
+    v1 = list[idx]
+    
+    if v0 == value:
+        return idx - 1
+    
+    if round == "norm":
+        if abs(v0 - value) < abs(v1 - value):
+            return idx - 1
+        else:
+            return idx
+
+    elif round == "up":
+        return idx    
+
+    elif round == "down":
+        return idx - 1
+
+
+def find_indices_for_range(list, range, frame = "data", round = "maximize"):
+
+    if frame == "data":
+        if round == "maximize": 
+            round_a = "down"
+            round_b = "up"
+        else:
+            round_a = "norm"
+            round_b = "norm"
+    
+        a = find_index_for_value(list, range[0], round = round_a)
+        b = find_index_for_value(list, range[1], round = round_b)
+    else:
+        a = range[0]
+        b = range[1]
+            
+    return a, b
 
 
 
