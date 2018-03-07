@@ -70,6 +70,13 @@ def rb_gaussian(A, t):
     return y
 
 
+def NPCT_gaussian(t, sigma, mu, A, y_offset):
+    """
+
+    """
+    res = ( A / (sigma * numpy.sqrt(2*numpy.pi)) ) * numpy.exp( -(t - mu)**2 / (2 * sigma**2) ) + y_offset
+    return res
+
 
 def rb_lorentzian(A, t):
     """
@@ -391,7 +398,52 @@ def gvd_formula_7(x, s):
     )
     
     return y
+ 
+
+def reflectance(n1, n2, a_deg = [], a_range = (0,90), n_steps = -1):
+    """
+    It is calculated for what?
+    - a_deg > a_range
     
+    """
+
+    n1 = CF.make_numpy_ndarray(n1)
+    n2 = CF.make_numpy_ndarray(n2)
+    a_deg = CF.make_numpy_ndarray(a_deg)
+
+    if len(a_deg) == 0:
+        if n_steps == -1:
+            n_steps = int(a_range[1] - a_range[0]) + 1
+            if n_steps < 5:
+                n_steps = 5
+        a_deg = numpy.linspace(a_range[0], a_range[1], num = n_steps)
+            
+
+
+    a_rad = a_deg * numpy.pi / 180
+    
+    N1, A = numpy.meshgrid(n1, a_rad)
+    N2, A = numpy.meshgrid(n2, a_rad)
+    
+    # when n2 > n1, there is a critical angle. Here angles > critical angles are set to nan. 
+    temp = ((N1 * numpy.sin(A)) / (N2))**2
+    numpy.putmask(temp, temp >= 1, numpy.nan)
+    x = numpy.sqrt(1 - temp)
+    
+    a = N1 * numpy.cos(A)
+    b = N2 * x
+    Rs = numpy.abs((a-b) / (a+b))**2
+    
+    a = N1 * x
+    b = N2 * numpy.cos(A)
+    Rp = numpy.abs((a-b) / (a+b))**2
+    
+    return a_deg, Rs, Rp
+    
+    
+    
+
+   
 
 if __name__ == "__main__": 
 

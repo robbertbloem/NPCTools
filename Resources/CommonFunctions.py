@@ -58,7 +58,7 @@ def string_with_numbers_to_list(string):
     
     string = string.replace("\n", " ")
     # remove everything, except \d (numbers), \s (spaces), . (decimal), e (exponent), +, - (signs)
-    non_decimal = re.compile(r'[^\d\s.e+-]+')
+    non_decimal = re.compile(r'[^\d\s.eE+-]+')
     res = non_decimal.sub('', string)
     data = res.split(" ")
     # remove excess spaces

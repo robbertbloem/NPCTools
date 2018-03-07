@@ -232,8 +232,8 @@ def interpolate_two_datasets(x1, y1, x2, y2, x_step = 1, interpolation_kind = "d
     
     """
     
-    if interpolate_kind == "default":
-        interpolate_kind = "linear"
+    if interpolation_kind == "default":
+        interpolation_kind = "linear"
         
         
     x1 = CF.make_numpy_ndarray(x1)
@@ -259,8 +259,11 @@ def interpolate_two_datasets(x1, y1, x2, y2, x_step = 1, interpolation_kind = "d
         finish = x1[-1]
     else:
         finish = x2[-1]    
+        
+    if verbose > 0:
+        print(start, finish)
 
-    new_x = numpy.arange(start, finish + 1, step = x_step)
+    new_x = numpy.arange(start, finish, step = x_step)
 
     f = interp1d(x1, y1, kind = interpolation_kind)
     new_y1 = f(new_x)

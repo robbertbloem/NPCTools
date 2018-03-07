@@ -114,7 +114,25 @@ def import_streak(paf):
     return data2, x_axis, y_axis, meta_dict
 
 
+def get_area(x, y, z, xrange = [0,-1], yrange = [0,-1], frame = "data"):
 
+    if xrange[0] == 0 and xrange[1] == -1:
+        _z = z[:,:]
+        _x = x[:]
+    else:
+        a, b = CF.find_indices_for_range(x, xrange, frame = frame, round = "maximize")    
+        _z = z[:, a:b]
+        _x = x[a:b]
+#     print(a,b)
+    if yrange[0] == 0 and yrange[1] == -1:
+        _z = _z[:,:]
+        _y = y[:]
+    else:
+        a, b = CF.find_indices_for_range(y, yrange, frame = frame, round = "maximize")
+        _z = _z[a:b, :]
+        _y = y[a:b]
+#     print(a,b)
+    return _x, _y, _z
 
 
 
@@ -131,13 +149,20 @@ def get_average(x, y, z, axis = "x", range = [0,-1], frame = "data"):
 
 
     if axis == "x":
-        a, b = CF.find_indices_for_range(y, range, frame = frame, round = "maximize")    
-        data = numpy.mean(z[a:b, :], axis = 0)
+        if range[0] == 0 and range[1] == -1:
+            _z = numpy.mean(z, axis = 0)
+        else:
+            a, b = CF.find_indices_for_range(y, range, frame = frame, round = "maximize")    
+            _z = numpy.mean(z[a:b, :], axis = 0)
     else:
-        a, b = CF.find_indices_for_range(x, range, frame = frame, round = "maximize")
-        data = numpy.mean(z[:, a:b], axis = 1)
+        if range[0] == 0 and range[1] == -1:
+            _z = numpy.mean(z, axis = 1)
+        else:
+            a, b = CF.find_indices_for_range(x, range, frame = frame, round = "maximize")
+            _z = numpy.mean(z[:, a:b], axis = 1)
+            print(a,b)
         
-    return data
+    return _z
     
 
 
@@ -172,55 +197,136 @@ def plot_streak(x, y, z, meta_dict, ax = False, **kwargs):
     return ax
 
 
-def fit_laser_pulse(x, y, z, xrange = [0,-1], yrange = [0,-1], frame = "data"):
+def gaussian(t, sigma, mu, y, A):
+    """
+    A[0]: sigma (sigma^2 = variance)
+    A[1]: mu (mean)
+    A[2]: offset 
+    A[3]: scale, before offset
 
-    data = get_average(x, y, z, axis = "y", range = xrange, frame = frame)
+    """
+    res = ( A / (sigma * numpy.sqrt(2*numpy.pi)) ) * numpy.exp( -(t - mu)**2 / (2 * sigma**2) ) + y
+    return res
+    
+def poisson(k, lamb):
+    return (lamb**k/scipy.misc.factorial(k)) * numpy.exp(-lamb)
+    
+
+def fit_laser_pulse_poisson(x, y, z, xrange = [0,-1], yrange = [0,-1], frame = "data", title = "", ax_fit = False, ax_res = False):
+
+    _z = get_average(x, y, z, axis = "y", range = xrange, frame = frame)
     
     if yrange[0] != 0 and yrange[1] != -1:
         a, b = CF.find_indices_for_range(y, yrange, frame = frame, round = "maximize")
         
-        data = data[a:b]
+        _z = _z[a:b]
         _y = y[a:b]
     else:
-        _y = y
+        _y = numpy.copy(y)
+
+    i = numpy.argmax(_z)
+    A_start = [1]
+
+#     _z += 0.00001
+#     weight = numpy.sqrt(_z)
+#     print(weight == 0)
+#     weight += 0.0000001
+    #     A_start = [1,1,0,1]
+    A_laser, matcov = scipy.optimize.curve_fit(f = poisson, xdata = _y, ydata = _z, p0 = A_start)
     
+    print(A_laser)
+    
+    z_fit = 0
+    return A_laser, _y, _z, z_fit
+
+
+def fit_laser_pulse(x, y, z, xrange = [0,-1], yrange = [0,-1], frame = "data", title = "", ax_fit = False, ax_res = False, flag_weigh_laser = False):
+
+    _z = get_average(x, y, z, axis = "y", range = xrange, frame = frame)
+    
+    if yrange[0] != 0 and yrange[1] != -1:
+        a, b = CF.find_indices_for_range(y, yrange, frame = frame, round = "maximize")
+        
+        _z = _z[a:b]
+        _y = y[a:b]
+    else:
+        _y = numpy.copy(y)
+
     # initial try for laser pulse
     # SD, mean, offset, scale
-    i = numpy.argmax(data)
-    A_start = [0.1, _y[i], 0, 1]
+    i = numpy.argmax(_z)
+    A_start = [0.1, _y[i], 0, _z[i]]
 
-    # fit
-    A_laser = MATH.fit(_y, data, EQ.rb_gaussian, A_start, return_all = False)
+    print("FIT RESULTS LASER %s" % (title))
+
+    if flag_weigh_laser:
+#         _z += 0.00001
+        
+        weight = numpy.copy(_z)
+        temp = numpy.where(weight == 0)[0]
+        weight[temp] += 1e20
+        weight = numpy.sqrt(weight)
+        A_laser, matcov = scipy.optimize.curve_fit(f = gaussian, xdata = _y, ydata = _z, p0 = A_start, sigma = weight, absolute_sigma = True)
+        print("  Weighed")
+    else:
+        A_laser, matcov = scipy.optimize.curve_fit(f = gaussian, xdata = _y, ydata = _z, p0 = A_start)
+        weight = numpy.ones(len(_z))
+        print("  Not weighed")
+
+    z_fit = gaussian(_y, A_laser[0], A_laser[1], A_laser[2], A_laser[3])
+    r = _z - z_fit
+    temp2 = numpy.argmax(_z)
+#     print(temp2)
+    temp = (r / weight) ** 2
+    chisq = numpy.sum(temp[(temp2-10):(temp2+10)])
     
-    # check output
-    out = EQ.rb_gaussian(A_laser, _y)
+    print("  Mean:        %5.3f" % A_laser[1])
+    print("  SD:          %5.3f" % A_laser[0])
+    print("  Y-offset:    %5.3f" % A_laser[2])
+    print("  Scale:       %5.3f" % A_laser[3])
+    print("  Chi2:        %5.3f" % chisq)
     
-    print("FIT RESULTS")
-    print("Mean:", A_laser[1])
-    print("SD:", A_laser[0])
-    print("Offset:", A_laser[2])
-    print("Scale:", A_laser[3])
     
-#     plt.plot(_y, data)
-#     plt.plot(_y, out)
     
-    r = data - out
     
-    fig = plt.figure()
+
+    if ax_fit:
+        ax_fit.plot(_y, _z)
+        ax_fit.plot(_y, z_fit)
     
-    ax = [0] * 2
-    ax[0] = fig.add_subplot(211)
-    ax[1] = fig.add_subplot(212)
+    if ax_res:
+        ax_res.plot(_y, r)
+
+    temp = A_laser[1] - _y[0]
+    x_min = A_laser[1] - 1 
+    if x_min < _y[0]:
+        x_min = _y[0]
+    x_max = A_laser[1] + 1 
     
-    ax[0].plot(_y, data)
-    ax[0].plot(_y, out)
+    if ax_fit:
+        ax_fit.set_xlim(x_min, x_max)
+    if ax_res:
+        ax_res.set_xlim(x_min, x_max)
     
-    ax[1].plot(_y, r)
+    if ax_fit and ax_res:
+        if title != "":
+            ax_fit.set_title("Fit of laser of %s" % (title))
+        ax_res.set_xlabel("Time (ns)")
+        ax_fit.set_ylabel("Intensity (counts, averaged)")
+        ax_res.set_ylabel("Residue") 
+    elif ax_fit:
+        if title != "":
+            ax_fit.set_title("Fit of laser of %s" % (title))
+        ax_fit.set_xlabel("Time (ns)")
+        ax_fit.set_ylabel("Intensity (counts, averaged)")
+    elif ax_res:
+        if title != "":
+            ax_res.set_title("Residue of laser of %s" % (title))
+        ax_res.set_xlabel("Time (ns)")
+        ax_res.set_ylabel("Residue") 
+
     
-    ax[0].set_xlim(9.1, 10.1)
-    ax[1].set_xlim(9.1, 10.1)
-    
-    return A_laser
+    return A_laser, _y, _z, z_fit
 
 
 
@@ -290,7 +396,8 @@ def fit_lifetime(x, y, z, A_laser = [], xrange = [0,-1], yrange = [0,-1], frame 
     else:
         _y = y
 
-
+    # numpy.savetxt("/Users/rbloem/Transporter/arcnl/Measurements/20170502/time.csv", _y)
+#     numpy.savetxt("/Users/rbloem/Transporter/arcnl/Measurements/20170502/intensity.csv", data)
 
     t = [_y, A_laser[0]] #, A_laser[2]]
     A_start = scipy.array([A_laser[1], A_laser[2], A_laser[3], y[-1]/4, ])
@@ -307,7 +414,7 @@ def fit_lifetime(x, y, z, A_laser = [], xrange = [0,-1], yrange = [0,-1], frame 
     A_out, matcov = scipy.optimize.curve_fit(gaussian_single_exponential, t, data, p0 = A_start, sigma = sigma, absolute_sigma = False)
     
     
-    print(A_out)
+    print("single exp gaus", A_out)
     out = gaussian_single_exponential(t, A_out[0], A_out[1], A_out[2], A_out[3])
 
     r = data - out

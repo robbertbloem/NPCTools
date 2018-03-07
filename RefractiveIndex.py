@@ -22,6 +22,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import imp
+
 import numpy
 import matplotlib 
 import matplotlib.pyplot as plt
@@ -35,7 +37,7 @@ import NPCTools.Resources.Mathematics as MATH
 import NPCTools.Resources.CommonFunctions as CF
 import NPCTools.Debug as DEBUG
 
-
+imp.reload(CF)
 
 
 
@@ -57,6 +59,14 @@ def ri_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose =
     # check the range 
     if "formula" in db_record["type"]:
         
+#         temp = numpy.where(wl_um < db_record["range"][0])[0]
+#         print(temp)
+#         wl_um[temp] = numpy.nan
+# 
+#         temp = numpy.where(wl_um > db_record["range"][1])[0]
+#         print(temp)
+#         wl_um[temp] = numpy.nan
+        print(db_record["range"][0])
         if wl_um[0] < db_record["range"][0]: 
             raise ValueError("Error, wavelength %1.2f micron is too low! It should be above %1.2f micron." % (wl_um[0], db_record["range"][0]) )
         elif wl_um[-1] > db_record["range"][1]:
@@ -142,7 +152,17 @@ def ri_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose =
                 print(i, wl_um[i], ri[i])
         
     elif db_record["type"] == "formula 7":
-        raise NotImplementedError(error_string + "formula 7")  
+        DEBUG.verbose("  Using formula 7 to calculate refractive indices", verbose_level = 1)
+        l = wl_um**2
+        n_terms = len(db_record["coefficients"]) - 3
+        t1 = db_record["coefficients"][1] / (l - 0.028)
+        t2 = db_record["coefficients"][2] * ( 1 / (l - 0.028))**2
+        ri = db_record["coefficients"][0] + t1 + t2 
+        for i in range(n_terms):
+            ri += db_record["coefficients"][i+3] * l**(i+1)
+        if verbose >= 1:
+            for i in range(len(wl_um)):
+                print(i, wl_um[i], ri[i]) 
         
     elif db_record["type"] == "formula 8":
         raise NotImplementedError(error_string + "formula 8")  
@@ -162,6 +182,37 @@ def ri_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose =
         raise ValueError("The type of data in the database record is unknown (usually formula 1-9 or tabulated data). Type here is %s." % db_record["type"]) 
     
     return ri    
+
+
+def n_k_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose = 0):
+    """
+    Calculate the refractive index and extinction coefficient for wavelengths wl_um. The input is the data from refractiveindex.info and comes as one of 9 equations (not all of them are implemented) or as a table of values. For the latter interpolation will be used to get the values for the asked wavelengths. 
+    
+    db_record is the dictionary.
+      
+    """
+
+    if "type" not in db_record:
+        raise KeyError("ri_for_wavelengths(): The database record does not have a key 'type'.")
+        
+    wl_um = CF.make_numpy_ndarray(wl_um)
+        
+    if db_record["type"] == "tabulated nk":
+    
+        if wl_um[0] < db_record["data"][:,0][0]: 
+            raise ValueError("Error, wavelength %1.2f micron is too low! It should be above %1.2f micron." % (wl_um[0], db_record["data"][:,0][0]) )
+        elif wl_um[-1] > db_record["data"][:,0][-1]:
+            raise ValueError("Error, wavelength %1.2f micron is too high! It should be below %1.2f micron." % (wl_um[-1], db_record["data"][:,0][-1]) )  
+    
+        DEBUG.verbose("  Tabulated data (type nk)", verbose_level = 1)
+        n = MATH.interpolate_data(db_record["data"][:,0], db_record["data"][:,1], wl_um)
+        k = MATH.interpolate_data(db_record["data"][:,0], db_record["data"][:,2], wl_um)
+        
+    else:
+        raise NotImplementedError("Importing n and k are only implemented for tabulated records.") 
+    
+    return n, k  
+
 
 
 def gvd_for_wavelengths(db_record, wl_um, interpolate_kind = "default", verbose = 0):
@@ -272,6 +323,81 @@ def get_ri(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, interpolate_ki
 
     return wl_um, ri
 
+
+def get_n_k(paf, wl_um = [], um_range = [0.3, 0.6], n_steps = 100, interpolate_kind = "default", verbose = 0):
+    """
+    Import a file from RefractiveIndex.info and output the refractive index for the desired wavelengths. 
+    
+    
+    INPUT:
+    paf (str): path and filename
+    wl_um (ndarray): wavelength axis, in micrometer
+    um_range (list with 2 elements): if wl_um is not given, it will plot a range.
+    n_steps (int): number of steps to plot the range.
+    ax (plt axis): if False, it will make a new figure
+    interpolate_kind (str): for tabulated data, the type of interpolation
+    
+    """
+    temp = paf.split("/")
+    DEBUG.verbose("Importing data for %s by %s" % (temp[-2], temp[-1][:-4]), verbose_level = 1)
+
+    db_record = RIRY.import_refractive_index(paf = paf, verbose = verbose)
+    DEBUG.verbose("  Imported data", verbose_level = 0)
+    
+    if len(wl_um) == 0:
+        wl_um = numpy.linspace(um_range[0], um_range[1], num = n_steps)
+    n, k = n_k_for_wavelengths(db_record, wl_um, verbose = verbose)
+
+    if type(n) == int:
+        return 0, 0, 0
+
+    return wl_um, n, k
+
+
+def get_reflectance(paf1 = "air", paf2 = "", wl_um = [], um_range = [0.3, 0.6], a_deg = [], a_range = (0, 90), n_steps = 100, interpolate_kind = "default", verbose = 0):
+    """
+    Import a file from RefractiveIndex.info and output the refractive index for the desired wavelengths. 
+    
+    
+    INPUT:
+    paf (str): path and filename
+    wl_um (ndarray): wavelength axis, in micrometer
+    um_range (list with 2 elements): if wl_um is not given, it will plot a range.
+    n_steps (int): number of steps to plot the range.
+    ax (plt axis): if False, it will make a new figure
+    interpolate_kind (str): for tabulated data, the type of interpolation
+    
+    """
+    if len(wl_um) == 0:
+        wl_um = numpy.linspace(um_range[0], um_range[1], num = n_steps)
+    
+    # material 1
+    if paf1 in ["", "air"]:
+        n1 = numpy.ones(len(wl_um))
+    elif type(paf1) == float:
+        n1 = numpy.ones(len(wl_um)) * paf1
+    else:
+        temp = paf1.split("/")
+        DEBUG.verbose("Importing data for %s by %s" % (temp[-2], temp[-1][:-4]), verbose_level = 1)
+        db_record = RIRY.import_refractive_index(paf = paf1, verbose = verbose)
+        DEBUG.verbose("  Imported data", verbose_level = 0)
+        n1 = ri_for_wavelengths(db_record, wl_um, verbose = verbose)
+    
+    # material 1
+    if paf2 in ["", "air"]:
+        n2 = numpy.ones(len(wl_um))
+    elif type(paf2) == float:
+        n2 = numpy.ones(len(wl_um)) * paf2
+    else:
+        temp = paf2.split("/")
+        DEBUG.verbose("Importing data for %s by %s" % (temp[-2], temp[-1][:-4]), verbose_level = 1)
+        db_record = RIRY.import_refractive_index(paf = paf2, verbose = verbose)
+        DEBUG.verbose("  Imported data", verbose_level = 0)
+        n2 = ri_for_wavelengths(db_record, wl_um, verbose = verbose)
+        
+    a_deg, Rs, Rp = EQ.reflectance(n1, n2, a_deg = [], a_range = a_range, n_steps = -1)
+
+    return wl_um, a_deg, Rs, Rp
 
 
 
@@ -404,6 +530,84 @@ if __name__ == "__main__":
     plt.close("all")
     
     path = "/Users/rbloem/Developer/NPCTools/Data/RefractiveIndexDB/"
+
+    # formula 2
+    # https://refractiveindex.info/?shelf=main&book=CaF2&page=Daimon-20
+    paf = path + "database/main/CaF2/Daimon-20.yml"
+    wl_um = numpy.array([0.6])
+    a_range = (0,90)
+    wl_um, a_deg, Rs, Rp = get_reflectance(paf2 = paf, wl_um = wl_um, a_range = a_range)
+    for _w in range(len(wl_um)):
+        plt.plot(a_deg, Rs[:,_w])
+        plt.plot(a_deg, Rp[:,_w])
+
+
+# 
+#     # formula 2
+#     # https://refractiveindex.info/?shelf=main&book=CaF2&page=Daimon-20
+#     paf = path + "database/main/CaF2/Daimon-20.yml"
+#     wl_um = numpy.array([0.6])
+#     a_range = [0,90]
+#     wl_um, a_deg, Rs, Rp = get_reflectance(paf1 = paf, wl_um = wl_um, a_range = a_range)
+#     for _w in range(len(wl_um)):
+#         plt.plot(a_deg, Rs[:,_w])
+#         plt.plot(a_deg, Rp[:,_w])
+#         
+#     # formula 2
+#     # https://refractiveindex.info/?shelf=main&book=CaF2&page=Daimon-20
+#     paf = path + "database/main/CaF2/Daimon-20.yml"
+#     wl_um = numpy.array([0.6])
+#     a_range = [0,90]
+#     wl_um, a_deg, Rs, Rp = get_reflectance(paf2 = paf, wl_um = wl_um, a_range = a_range)
+#     for _w in range(len(wl_um)):
+#         plt.plot(a_deg, Rs[:,_w])
+#         plt.plot(a_deg, Rp[:,_w])
+#         
+#         
+# 
+#     paf = path + "database/main/SiO2/Malitson.yml"
+#     wl_um = numpy.array([0.6])
+#     a_range = [0,90]
+#     wl_um, a_deg, Rs, Rp = get_reflectance(paf1 = paf, wl_um = wl_um, a_range = a_range)
+#     for _w in range(len(wl_um)):
+#         plt.plot(a_deg, Rs[:,_w])
+#         plt.plot(a_deg, Rp[:,_w])
+# 
+#     wl_um = numpy.array([0.6])
+#     a_range = [0,90]
+#     wl_um, a_deg, Rs, Rp = get_reflectance(paf2 = paf, wl_um = wl_um, a_range = a_range)
+#     for _w in range(len(wl_um)):
+#         plt.plot(a_deg, Rs[:,_w])
+#         plt.plot(a_deg, Rp[:,_w])
+#         
+        
+        
+# 
+#     # formula 2
+#     
+#     paf = path + "database/main/MgF2/Dodge-e.yml"
+#     wl_um = numpy.array([0.6])
+#     a_range = [0,90]
+#     wl_um, a_deg, Rs, Rp = get_reflectance(paf, wl_um = wl_um, a_range = a_range)
+#     print(numpy.shape(Rs))
+#     for _w in range(len(wl_um)):
+#         plt.plot(a_deg, Rs[:,_w])
+#         plt.plot(a_deg, Rp[:,_w])
+#         
+#     paf = path + "database/main/SiO2/Malitson.yml"
+#     wl_um = numpy.array([0.6])
+#     a_range = [0,90]
+#     wl_um, a_deg, Rs, Rp = get_reflectance(paf, wl_um = wl_um, a_range = a_range)
+#     print(numpy.shape(Rs))
+#     for _w in range(len(wl_um)):
+#         plt.plot(a_deg, Rs[:,_w])
+#         plt.plot(a_deg, Rp[:,_w])
+
+    
+#     ri = plot_ri(paf)
+#     gvd = plot_gvd(paf, um_range = [0.3, 0.6])
+#     print(gvd[0])
+
     
 #     
 #     # formula 1
@@ -489,21 +693,21 @@ if __name__ == "__main__":
 #     plt.plot(t, t_out[0,:,0])
 
 
-
-    # formula 2 AND table
-    # https://refractiveindex.info/?shelf=glass&book=BK7&page=SCHOTT
-    paf = path + "database/glass/schott/N-BK7.yml"
-#     wl_um = numpy.array([0.3, 0.4, 0.5, 0.6])
-    wl_um = [0.8]
-
-    wl_um, ri = get_ri(paf, wl_um = wl_um)
-    wl_um, gvd = get_gvd(paf, wl_um = wl_um) 
-    print(gvd[0])
-    t = numpy.arange(10,150)
-    d = [10]
-    t_out = effect_gvd(wl_um, gvd, t, d)
-    plt.plot(t, t_out[0,:,0])
-    plt.plot(t, t)
+# 
+#     # formula 2 AND table
+#     # https://refractiveindex.info/?shelf=glass&book=BK7&page=SCHOTT
+#     paf = path + "database/glass/schott/N-BK7.yml"
+# #     wl_um = numpy.array([0.3, 0.4, 0.5, 0.6])
+#     wl_um = [0.8]
+# 
+#     wl_um, ri = get_ri(paf, wl_um = wl_um)
+#     wl_um, gvd = get_gvd(paf, wl_um = wl_um) 
+#     print(gvd[0])
+#     t = numpy.arange(10,150)
+#     d = [10]
+#     t_out = effect_gvd(wl_um, gvd, t, d)
+#     plt.plot(t, t_out[0,:,0])
+#     plt.plot(t, t)
 
 #     
 #     

@@ -116,48 +116,161 @@ def effect_gvd_for_pulselengths():
     ax_i = 0
     
     # use only 1 wavelength
-    wl_um = [0.8]
+    wl_um = [0.2]
     # make an array of initial times. ndarray: [10, 11, 12, ..., 149]
     t_fs = numpy.arange(5,100)
     # only one thickness
-    d_mm = [10]
+    d_mm = [0.5]
+#     
+#     # BK7
+#     path_to_file = "database/glass/schott/N-BK7.yml"
+#     paf = path_to_ri_database + path_to_file
+#     wl_um, gvd = RI.get_gvd(paf, wl_um = wl_um) 
+#     t_out = RI.effect_gvd(wl_um, gvd, t_fs, d_mm)
+#     ax[ax_i].plot(t_fs, t_out[0,:,0], label = "BK7")
+#     
+#     # CaF2
+#     path_to_file = "database/main/CaF2/Daimon-20.yml"
+#     paf = path_to_ri_database + path_to_file
+#     wl_um, gvd = RI.get_gvd(paf, wl_um = wl_um) 
+#     t_out = RI.effect_gvd(wl_um, gvd, t_fs, d_mm)
+#     ax[ax_i].plot(t_fs, t_out[0,:,0], label = "CaF2")    
     
-    # BK7
-    path_to_file = "database/glass/schott/N-BK7.yml"
+    # Quartz
+    d_mm = [0.2 * numpy.sqrt(2)]
+    path_to_file = "database/main/SiO2/Ghosh-e.yml"
     paf = path_to_ri_database + path_to_file
     wl_um, gvd = RI.get_gvd(paf, wl_um = wl_um) 
     t_out = RI.effect_gvd(wl_um, gvd, t_fs, d_mm)
-    ax[ax_i].plot(t_fs, t_out[0,:,0], label = "BK7")
-    
-    # CaF2
-    path_to_file = "database/main/CaF2/Daimon-20.yml"
+    ax[ax_i].plot(t_fs, t_out[0,:,0], label = "Quartz, 0.28 mm")        
+
+    # Sapphire
+    d_mm = [0.5]
+    path_to_file = "database/main/Al2O3/Malitson-e.yml"
     paf = path_to_ri_database + path_to_file
     wl_um, gvd = RI.get_gvd(paf, wl_um = wl_um) 
     t_out = RI.effect_gvd(wl_um, gvd, t_fs, d_mm)
-    ax[ax_i].plot(t_fs, t_out[0,:,0], label = "CaF2")    
-    
+    ax[ax_i].plot(t_fs, t_out[0,:,0], label = "Sapphire, 0.5 mm") 
+
+    # Sapphire
+    d_mm = [0.2]
+    path_to_file = "database/main/Al2O3/Malitson-e.yml"
+    paf = path_to_ri_database + path_to_file
+    wl_um, gvd = RI.get_gvd(paf, wl_um = wl_um) 
+    t_out = RI.effect_gvd(wl_um, gvd, t_fs, d_mm)
+    ax[ax_i].plot(t_fs, t_out[0,:,0], label = "Sapphire, 0.2 mm") 
+
     # plot
     ax[ax_i].legend()
     ax[ax_i].grid()
-    ax[ax_i].set_xlim(0,100)
-    ax[ax_i].set_ylim(0,125)
+    ax[ax_i].set_xlim(0,60)
+    ax[ax_i].set_ylim(0,80)
     # diagonal line
     ax[ax_i].plot([0,200], [0,200], color = "black", linewidth = 1)
     ax[ax_i].plot([35,35], [0,200], color = "grey", linewidth = 1)
-    ax[ax_i].set_title("Effect on pulse length for 10 mm material at 800 nm")
+#     ax[ax_i].set_title("Effect on pulse length for {:2.1f} mm material at 800 nm".format(d_mm[0]))
+    ax[ax_i].set_title("Effect on pulse length at {:3d} nm".format(int(1000 * wl_um[0])))
     ax[ax_i].set_xlabel("Initial pulse length (fs)")
     ax[ax_i].set_ylabel("Resulting pulse length (fs)")
     
     
 
+def effect_reflection_for_wavelengths():
+    """
+    Compare the effects of two different thicknesses on the pulse length.
+    """
+    path_to_file = "database/main/CaF2/Daimon-20.yml"
+    paf = path_to_ri_database + path_to_file
+
+    # initialize plot
+    fig = plt.figure()
+    n_ax = 1
+    ax = [0] * n_ax
+    ax[0] = fig.add_subplot(111)
+
+    # wavelength range
+    um_range = [0.21, 2.3]
+
+    a_deg = [0]
+    # air -> caf2
+    wl_um, a_deg, Rs1, Rp1 = RI.get_reflectance(paf2 = paf, um_range = um_range, a_deg = a_deg)
+    # caf2 -> air
+    wl_um, a_deg, Rs2, Rp2 = RI.get_reflectance(paf1 = paf, um_range = um_range, a_deg = a_deg)
+    Rs = Rs1 + Rs2
+
+    ax_i = 0
+    _a = 0
+
+    ax[ax_i].plot(wl_um, 100 * Rs1[_a,:], label = "air -> CaF2")
+    ax[ax_i].plot(wl_um, 100 * Rs2[_a,:], label = "CaF2 -> vacuum")
+    ax[ax_i].plot(wl_um, 100 * Rs[_a,:], label = "total")
+
+    
+    ax[ax_i].legend()
+    ax[ax_i].set_title("Reflection for 0 deg AOI for CaF2")
+    ax[ax_i].set_xlabel("Wavelength (micron)")
+    ax[ax_i].set_ylabel("Reflection (%)")
+    ax[ax_i].set_ylim(0,8)
+
+
+def effect_reflection_for_angles():
+
+    path_to_file = "database/main/CaF2/Daimon-20.yml"
+    paf = path_to_ri_database + path_to_file
+
+    # initialize plot
+    fig = plt.figure()
+    n_ax = 2
+    ax = [0] * n_ax
+    ax[0] = fig.add_subplot(121)
+    ax[1] = fig.add_subplot(122)
+
+    # wavelength range
+    wl_um = [1]
+
+    a_range = (0, 90)
+    a_deg = numpy.linspace(0, 90, 1000)
+    # air -> caf2
+    wl_um, a_deg, Rs1, Rp1 = RI.get_reflectance(paf2 = paf, wl_um = wl_um, a_deg = a_deg) #a_range = a_range)
+    # caf2 -> air
+    wl_um, a_deg, Rs2, Rp2 = RI.get_reflectance(paf1 = paf, wl_um = wl_um, a_deg = a_deg) #a_range = a_range) #a_deg = a_deg)
+
+
+    
+    _wl = 0
+
+    ax_i = 0
+    ax[ax_i].plot(a_deg, 100 * Rs1[:,_wl], label = "s-pol")
+    ax[ax_i].plot(a_deg, 100 * Rp1[:,_wl], label = "p-pol")
+    ax[ax_i].set_title("air -> CaF2")
+    
+    
+    
+    ax_i = 1
+    ax[ax_i].plot(a_deg, 100 * Rs2[:,_wl], label = "s-pol")
+    ax[ax_i].plot(a_deg, 100 * Rp2[:,_wl], label = "p-pol")
+    ax[ax_i].set_title("CaF2 -> air")
+
+    for ax_i in range(2):
+        ax[ax_i].legend()
+        ax[ax_i].set_ylabel("Reflection (%)")
+        ax[ax_i].set_xlabel("Angle (degrees)")
+        
+        ax[ax_i].set_xlim(0,90)
+        ax[ax_i].set_ylim(0,100)
+        
+    
+    fig.suptitle("Reflection for 1 micron light for CaF2")
 
 
 
 
 if __name__ == "__main__": 
-    example_ri_gvd_table()
-    example_ri_gvd_plot()
-    effect_thickness_on_gvd()
+#     example_ri_gvd_table()
+#     example_ri_gvd_plot()
+#     effect_thickness_on_gvd()
     effect_gvd_for_pulselengths()
+#     effect_reflection_for_wavelengths()
+#     effect_reflection_for_angles()
     
     plt.show()
