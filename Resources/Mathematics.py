@@ -135,7 +135,7 @@ def correlation_fft(a, v = -1, flag_normalize = True, flag_verbose = False):
     
 #     DEBUG.verbose("correlation_fft", flag_verbose)
 
-    if v == -1:
+    if type(v) != numpy.ndarray:
         v = a[:]
 
     # by subtracting the mean, the autocorrelation decays to zero

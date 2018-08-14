@@ -76,8 +76,6 @@ def print_meta_dict(meta_dict):
         
 
 
-
-
 def import_streak(paf):
 
     with open(paf, 'rb') as f:
@@ -405,7 +403,7 @@ def fit_lifetime(x, y, z, A_laser = [], xrange = [0,-1], yrange = [0,-1], frame 
 #     numpy.savetxt("/Users/rbloem/Transporter/arcnl/Measurements/20170502/intensity.csv", data)
 
     t = [_y, A_laser[0]] #, A_laser[2]]
-    A_start = scipy.array([A_laser[1], A_laser[2], A_laser[3], y[-1]/4, ])
+    A_start = scipy.array([A_laser[1], A_laser[2], A_laser[3], y[-1]/5, ])
     print(A_start)
     
     sigma = 1/numpy.sqrt(data)
@@ -417,6 +415,22 @@ def fit_lifetime(x, y, z, A_laser = [], xrange = [0,-1], yrange = [0,-1], frame 
 #     print(temp)
 
     A_out, matcov = scipy.optimize.curve_fit(gaussian_single_exponential, t, data, p0 = A_start, sigma = sigma, absolute_sigma = False)
+
+#     print("sigma       {:4.2f}".format(A_out[0]))
+#     print("mean        {:4.2f}".format(A_out[1]))
+#     print("offset      {:4.2f}".format(A_out[2]))
+#     print("scale       {:4.2f}".format(A_out[3]))
+#     print("amplitude   {:4.2f}".format(A_out[4]))
+    print("decay rate  {:4.2f}".format(1/A_out[3]))
+    print("lifetime    {:4.2f}".format(A_out[3]))
+    
+ #        t[1] a A[0]: sigma (sigma^2 = variance) 
+#     b A[1]: mu (mean)
+#     c A[2]: offset 
+#     d A[3]: scale, before offset
+#     e: amplitude exponential
+#     f = decay rate
+
     
     
     print("single exp gaus", A_out)
@@ -432,6 +446,15 @@ def fit_lifetime(x, y, z, A_laser = [], xrange = [0,-1], yrange = [0,-1], frame 
     
     ax[0].plot(_y, data)
     ax[0].plot(_y, out)
+    
+    xlim = ax[0].get_xlim()
+    ylim = ax[0].get_ylim()
+    
+    x = (xlim[0] + xlim[1]) /2
+    y = (ylim[0] + ylim[1]) /2
+    
+    s = "lifetime {:4.2f} ns".format(A_out[3])
+    ax[0].text(x,y, s = s)
     
     ax[1].plot(_y, r)
     
