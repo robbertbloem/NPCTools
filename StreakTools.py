@@ -40,8 +40,7 @@ class StreakTools():
         self.z, self.w_axis, self.t_axis, self.meta = SF.import_streak(self.paf)
 
 
-    def print_meta(self):
-    
+    def print_meta(self): 
         for k, v in self.meta.items():
             print("%s" % k.upper())
             for x, y in v.items():
@@ -120,6 +119,39 @@ class StreakTools():
         _t_axis, _z, y_fit, A_out = SF.fit_lifetime(self.w_axis, self.t_axis, self.z, w_range = w_range, t_range = t_range, frame = frame, flag_weigh_laser = flag_weigh_laser, fit_type = fit_type, debug = self.debug, exp_hints = exp_hints)
         
         return _t_axis, _z, y_fit, A_out
+        
+        
+    def make_lifetime_plot(self, _t_axis, _z, y_fit, A_out, fig = False, ax_decay = False, ax_residue = False):
+    
+#         _t_axis, _z, y_fit, A_out = SF.fit_lifetime(self.w_axis, self.t_axis, self.z, w_range = w_range, t_range = t_range, frame = frame, flag_weigh_laser = flag_weigh_laser, fit_type = fit_type, debug = self.debug, exp_hints = exp_hints)
+        
+        if fig == False:
+            figsize = (8.0, 6.0)
+            coords = [(0.0875, 0.4167, 0.875, 0.5), (0.0875, 0.08333, 0.875, 0.3333)]
+            n_fig = 1
+            n_ax = len(coords)
+            fig = [0] * n_fig
+            ax = [0] * n_fig
+            for fig_i in range(n_fig):    
+                fig[fig_i] = plt.figure(figsize = figsize)
+                ax[fig_i] = [0] * n_ax
+                for ax_i in range(n_ax):
+                    ax[fig_i][ax_i] = fig[fig_i].add_axes(coords[ax_i])
+                ax_decay = ax[0][0]
+                ax_residue = ax[0][1]
+                
+        if ax_decay:
+            ax_decay.plot(_t_axis, _z)
+            ax_decay.plot(_t_axis, y_fit)
+        
+        if ax_residue:
+            ax_residue.plot(_t_axis, _z - y_fit)
+                
+            
+        
+         
+    
+        
 
 
 # def fit_laser_pulse(x, y, z, xrange = [0,-1], yrange = [0,-1], frame = "data", title = "", ax_fit = False, ax_res = False, flag_weigh_laser = False):
