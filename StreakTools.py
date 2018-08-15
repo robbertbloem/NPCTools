@@ -60,7 +60,7 @@ class StreakTools():
         return _w_axis, _t_axis, _z
 
 
-    def get_average(self, axis = "w", range = [0,-1], frame = "data"):
+    def get_average(self, axis = "w", range = [0,-1], frame = "data", return_cumulative = False):
         """
         INPUTS:
         w_axis: wavelength axis
@@ -71,7 +71,7 @@ class StreakTools():
         frame: 'data' or 'index'
         """
         
-        _z = SF.get_average(self.w_axis, self.t_axis, self.z, axis = axis, range = range, frame = frame, debug = self.debug)
+        _z = SF.get_average(self.w_axis, self.t_axis, self.z, axis = axis, range = range, frame = frame, return_cumulative = return_cumulative, debug = self.debug)
         
         return _z
 
@@ -117,9 +117,9 @@ class StreakTools():
 
     def fit_lifetime(self, w_range = [0,-1], t_range = [0,-1], frame = "data", flag_weigh_laser = False, fit_type = "single_exp", exp_hints = -1):
 
-        _t_axis, _z, y_fit = SF.fit_lifetime(self.w_axis, self.t_axis, self.z, w_range = w_range, t_range = t_range, frame = frame, flag_weigh_laser = flag_weigh_laser, fit_type = fit_type, debug = self.debug, exp_hints = exp_hints)
+        _t_axis, _z, y_fit, A_out = SF.fit_lifetime(self.w_axis, self.t_axis, self.z, w_range = w_range, t_range = t_range, frame = frame, flag_weigh_laser = flag_weigh_laser, fit_type = fit_type, debug = self.debug, exp_hints = exp_hints)
         
-        return _t_axis, _z, y_fit
+        return _t_axis, _z, y_fit, A_out
 
 
 # def fit_laser_pulse(x, y, z, xrange = [0,-1], yrange = [0,-1], frame = "data", title = "", ax_fit = False, ax_res = False, flag_weigh_laser = False):

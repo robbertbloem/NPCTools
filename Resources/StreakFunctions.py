@@ -139,7 +139,7 @@ def get_area(w_axis, t_axis, z, w_range = [0,-1], t_range = [0,-1], frame = "dat
 
 
 
-def get_average(w_axis, t_axis, z, axis = "w", range = [0,-1], frame = "data", debug = 0):
+def get_average(w_axis, t_axis, z, axis = "w", range = [0,-1], frame = "data", return_cumulative = False, debug = 0):
     """
     INPUTS:
     w_axis: wavelength axis
@@ -156,21 +156,27 @@ def get_average(w_axis, t_axis, z, axis = "w", range = [0,-1], frame = "data", d
     if axis in ["w", "w_axis"]:
         if range[0] == 0 and range[1] == -1:
             _z = numpy.mean(z, axis = 0)
+            _s = numpy.sum(z, axis = 0)
         else:
             a, b = CF.find_indices_for_range(t_axis, range, frame = frame, round = "maximize")   
             if debug > 0:
                 print("  w_axis: from wavelength {:4.1f} [{:d}] to {:4.1f} [{:d}] ".format(w_axis[a], a, w_axis[b], b)) 
             _z = numpy.mean(z[a:b, :], axis = 0)
+            _s = numpy.sum(z[a:b, :], axis = 0)
     else:
         if range[0] == 0 and range[1] == -1:
             _z = numpy.mean(z, axis = 1)
+            _s = numpy.sum(z, axis = 1)
         else:
             a, b = CF.find_indices_for_range(w_axis, range, frame = frame, round = "maximize")
             if debug > 0:
                 print("  t_axis time from {:.1f} [{:d}] to {:.1f} [{:d}] ".format(t_axis[a], a, t_axis[b], b)) 
             _z = numpy.mean(z[:, a:b], axis = 1)
-
-    return _z
+            _s = numpy.sum(z[:, a:b], axis = 1)
+    if return_cumulative:
+        return _s
+    else:
+        return _z
 
 
 
@@ -361,7 +367,7 @@ def fit_lifetime(w_axis, t_axis, z, w_range = [0,-1], t_range = [0,-1], A_laser 
 
 
     
-    return _t_axis, _z, y_fit
+    return _t_axis, _z, y_fit, A_out
 
 
 
