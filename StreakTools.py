@@ -116,7 +116,7 @@ class StreakTools():
 
 
     def fit_lifetime(self, w_range = [0,-1], t_range = [0,-1], frame = "data", flag_weigh_laser = False, fit_type = "single_exp", exp_hints = -1):
-        print(fit_type)
+
         _t_axis, _z, y_fit = SF.fit_lifetime(self.w_axis, self.t_axis, self.z, w_range = w_range, t_range = t_range, frame = frame, flag_weigh_laser = flag_weigh_laser, fit_type = fit_type, debug = self.debug, exp_hints = exp_hints)
         
         return _t_axis, _z, y_fit
