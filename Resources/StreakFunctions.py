@@ -180,6 +180,8 @@ def get_average(w_axis, t_axis, z, axis = "w", range = [0,-1], frame = "data", r
 
 
 
+
+
 def gaussian_single_exponential(t, a, b, c, d, e, f):
     """
     t[0]: time axis
@@ -215,7 +217,24 @@ def gaussian_single_exponential_helper(t, a, b, d, e, f):
     y = d * numpy.real(numpy.fft.ifft(_g * _h))
     return y
     
-
+def single_exponential_noconv(t, e, f, c):
+    """
+    t[0]: time axis
+    Laser pulse
+    a A[0]: sigma (sigma^2 = variance) 
+    b A[1]: mu (mean)
+    c A[2]: offset 
+    d A[3]: scale, before offset
+    
+    e: amplitude exp 1
+    f: decay rate exp 1
+    """
+#     g = numpy.exp( -(t[0] - b)**2 / (2 * a**2) ) 
+    y = e * numpy.exp(-t[0] / f)
+#     _g = numpy.fft.fft(g)
+#     _h = numpy.fft.fft(h)
+#     y = d * numpy.real(numpy.fft.ifft(_g * _h))
+    return y + c
 
 def gaussian_double_exponential(t, a, b, c, d, e, f, k, m):
     """
@@ -258,8 +277,24 @@ def gaussian_triple_exponential(t, a, b, c, d, e, f, k, m, n, p):
     return gaussian_single_exponential_helper(t, a, b, d, e, f) + gaussian_single_exponential_helper(t, a, b, d, k, m) + gaussian_single_exponential_helper(t, a, b, d, n, p) + c
 
 
+def calculate_sigma(t, z, debug = 0):
+    idx = numpy.where(z != 0)[0]
+    if debug > 0:
+        print("Number of zero counts: {:d}".format(len(t) - len(idx)))
+    z = z[idx]
+    t = t[idx]
+    sigma = numpy.sqrt(z)
+    return t, z, sigma
 
-
+# def calculate_sigma(t, z):
+#     idx = numpy.where(z == 0)[0]
+# #     print("Number of zero counts: {:d}".format(len(t) - len(idx)))
+# #     c = numpy.divide(1, numpy.sqrt(z), out = numpy.zeros_like(z), where=z!=0)
+# #     z = z[idx]
+# #     t = t[idx]
+#     sigma = numpy.sqrt(z)
+#     sigma[idx] = 1e9
+#     return t, z, sigma
 
 
 def fit_lifetime(w_axis, t_axis, z, w_range = [0,-1], t_range = [0,-1], A_laser = [], frame = "data", flag_weigh_laser = False, debug = 0, fit_type = "single_exp", exp_hints = -1):
@@ -268,27 +303,44 @@ def fit_lifetime(w_axis, t_axis, z, w_range = [0,-1], t_range = [0,-1], A_laser 
         print("NPCTools.Resources.StreakFunctions.fit_lifetime") 
         print("  fit type: {:s}".format(fit_type))
 
+    if fit_type == "single_exp":
+        print("-- Single exponential decay with convolution --")
+    elif fit_type == "single_exp_no_offset":
+        print("-- Single exponential decay with convolution NO offset --")
+    elif fit_type in ["single_exp_no_conv1", "single_exp_no_conv2"]:        
+        print("-- Single exponential decay NO convolution --")
+    elif fit_type == "double_exp":
+        print("-- Double exponential decay with convolution --")      
+    elif fit_type == "triple_exp":
+        print("-- Triple exponential decay with convolution --")        
+        
+        
     _w_axis, _t_axis, _z = get_area(w_axis, t_axis, z, w_range = w_range, t_range = t_range, frame = frame, debug = debug)
 
     _z = get_average(_w_axis, _t_axis, _z, axis = "t", range = [0,-1], frame = frame, debug = debug)
     
     if len(A_laser) == 0:       
         A_laser = [0] * 4
-        A_laser[0] = 0.1  # sigma
+        A_laser[0] = 0.1  # std dev
         A_laser[1] = _t_axis[numpy.argmax(_z)] # mean
         A_laser[2] = 0 # offset
         A_laser[3] = 1 # scale
         
 
     
-    sigma = 1/numpy.sqrt(_z)
+    _t_axis, _z, sigma = calculate_sigma(_t_axis, _z, debug) #1/numpy.sqrt(_z)
+#     print(numpy.shape(_z), numpy.shape(sigma), numpy.amax(sigma), numpy.amin(sigma))
+    absolute_sigma = True
     
     if fit_type == "single_exp":
         t = [_t_axis]
-        A_start = scipy.array([A_laser[0], A_laser[1], A_laser[2], A_laser[3], numpy.amax(_z), _t_axis[-1]/5, ])
-        A_out, matcov = scipy.optimize.curve_fit(gaussian_single_exponential, t, _z, p0 = A_start, sigma = sigma, absolute_sigma = False)
+        # width laser, time offset laser, count offset laser, scale laser, amplitude exp, lifetime exp
+        A_start = scipy.array([A_laser[0], A_laser[1], A_laser[2], A_laser[3], numpy.amax(_z), _t_axis[-1]/4, ])
+        bounds = (0, numpy.inf)
+        A_out, matcov = scipy.optimize.curve_fit(gaussian_single_exponential, t, _z, p0 = A_start, sigma = sigma, absolute_sigma = absolute_sigma, bounds = bounds)
         
         y_fit = gaussian_single_exponential(t, A_out[0], A_out[1], A_out[2], A_out[3], A_out[4], A_out[5])
+        
         
         print("Laser")
         print("  Sigma:     {:3.2f}".format(A_out[0]))
@@ -298,7 +350,61 @@ def fit_lifetime(w_axis, t_axis, z, w_range = [0,-1], t_range = [0,-1], A_laser 
         print("Exponential")
         print("  Amplitude: {:3.2f}".format(A_out[4]))
         print("  Lifetime:  {:3.2f}".format(A_out[5]))
+      
+      
+      
+    elif fit_type == "single_exp_no_offset":  
+
+        t = [_t_axis]
+        A_start = scipy.array([A_laser[0], A_laser[1], A_laser[3], numpy.amax(_z), _t_axis[-1]/5, ])
+        bounds = (0, numpy.inf)
+        A_out, matcov = scipy.optimize.curve_fit(gaussian_single_exponential_helper, t, _z, p0 = A_start, sigma = sigma, absolute_sigma = absolute_sigma, bounds = bounds)
         
+        y_fit = gaussian_single_exponential_helper(t, A_out[0], A_out[1], A_out[2], A_out[3], A_out[4])
+        
+        
+        print("Laser")
+        print("  Sigma:     {:3.2f}".format(A_out[0]))
+        print("  Mean:      {:3.2f}".format(A_out[1]))
+#         print("  Offset:    {:3.2f}".format(A_out[2]))
+        print("  Scale:     {:3.2f}".format(A_out[2]))
+        print("Exponential")
+        print("  Amplitude: {:3.2f}".format(A_out[3]))
+        print("  Lifetime:  {:3.2f}".format(A_out[4]))
+
+    elif fit_type in ["single_exp_no_conv1", "single_exp_no_conv2"]:
+        idx = numpy.argmax(_z)
+#         print(idx)
+
+        if fit_type == "single_exp_no_conv1":
+            offset = 0
+        else:
+            offset = 5
+        
+        _t_axis = _t_axis[(idx+offset):]
+#         print("time", _t_axis[0])
+        t = [_t_axis]
+        _z = _z[(idx+offset):]
+#         print(_z)
+
+        _t_axis, _z, sigma = calculate_sigma(_t_axis, _z, debug)
+#         sigma = calculate_sigma(_z)
+        
+#         print(numpy.shape(_z), numpy.shape(sigma), numpy.amax(sigma), numpy.amin(sigma))
+        
+        A_start = scipy.array([numpy.amax(_z), _t_axis[-1]/5, 0])
+        bounds = (0, numpy.inf)
+        A_out, matcov = scipy.optimize.curve_fit(single_exponential_noconv, t, _z, p0 = A_start, sigma = sigma, absolute_sigma = absolute_sigma, bounds = bounds)
+        print(A_start, A_out)
+        y_fit = single_exponential_noconv(t, A_out[0], A_out[1], A_out[2])
+        
+#         gaussian_single_exponential(t, A_out[0], A_out[1], A_out[2], A_out[3], A_out[4], A_out[5])
+        
+
+        print("Exponential")
+        print("  Amplitude: {:3.2f}".format(A_out[0]))
+        print("  Lifetime:  {:3.2f}".format(A_out[1]))
+        print("  Offset:    {:3.2f}".format(A_out[2]))
     
     
     elif fit_type == "double_exp":
@@ -312,11 +418,11 @@ def fit_lifetime(w_axis, t_axis, z, w_range = [0,-1], t_range = [0,-1], A_laser 
             hint2 = _t_axis[-1]/20
         
         A_start = scipy.array([A_laser[0], A_laser[1], A_laser[2], A_laser[3], numpy.amax(_z), hint1, numpy.amax(_z)/2, hint2,])
-        A_out, matcov = scipy.optimize.curve_fit(gaussian_double_exponential, t, _z, p0 = A_start, sigma = sigma, absolute_sigma = False)
+        A_out, matcov = scipy.optimize.curve_fit(gaussian_double_exponential, t, _z, p0 = A_start, sigma = sigma, absolute_sigma = absolute_sigma)
         
         y_fit = gaussian_double_exponential(t, A_out[0], A_out[1], A_out[2], A_out[3], A_out[4], A_out[5], A_out[6], A_out[7])
 
-
+        print("Double exponential decay with convolution")
         print("Laser")
         print("  Sigma:     {:3.2f}".format(A_out[0]))
         print("  Mean:      {:3.2f}".format(A_out[1]))
@@ -344,10 +450,9 @@ def fit_lifetime(w_axis, t_axis, z, w_range = [0,-1], t_range = [0,-1], A_laser 
         
         A_start = scipy.array([A_laser[0], A_laser[1], A_laser[2], A_laser[3], numpy.amax(_z), hint1, numpy.amax(_z)/2, hint2, numpy.amax(_z)/2, hint3,])
         
-        A_out, matcov = scipy.optimize.curve_fit(gaussian_double_exponential, t, _z, p0 = A_start, sigma = sigma, absolute_sigma = False)
+        A_out, matcov = scipy.optimize.curve_fit(gaussian_double_exponential, t, _z, p0 = A_start, sigma = sigma, absolute_sigma = absolute_sigma)
         
         y_fit = gaussian_double_exponential(t, A_out[0], A_out[1], A_out[2], A_out[3], A_out[4], A_out[5], A_out[6], A_out[7], A_out[8], A_out[9])
-
 
         print("Laser")
         print("  Sigma:     {:3.2f}".format(A_out[0]))
